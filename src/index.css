@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --allora-blue-light: #67B7E8;
+    --allora-off-white: #FAF9F6;
+    --allora-aged-ivory: #E8E4D9;
+    --allora-blue-deep: #19344A;
+    --allora-soft-black: #111315;
+    --allora-white: #FFFFFF;
+  }
+
+  body {
+    background-color: #FAF9F6;
+    color: #111315;
+    font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, .font-heading {
+    font-family: 'Hero New', 'Montserrat', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Subtle connecting dots and lines pattern */
+.bg-allora-pattern {
+  background-image: radial-gradient(circle at 1px 1px, rgba(25, 52, 74, 0.08) 1.5px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.bg-allora-pattern-subtle {
+  background-image: radial-gradient(circle at 1px 1px, rgba(103, 183, 232, 0.12) 1.5px, transparent 0);
+  background-size: 28px 28px;
+}
