@@ -1,0 +1,33 @@
+RAPPORT DES FONCTIONNALITÉS NON-IMPLÉMENTÉES (REFONTE PROFIL & PARAMÈTRES)
+Date : 24 Septembre 2026
+Projet : ALLORA
+
+Conformément aux instructions de ne pas simuler de fonctionnalités backend inexistantes, voici la liste des éléments dont l'interface (UI) a été préparée mais dont la logique fonctionnelle complète reste à implémenter au niveau des services ou du serveur :
+
+1. GESTION DU COMPTE (SÉCURITÉ & ACCÈS)
+   - Désactivation du compte : L'interface est présente, mais la logique de mise en "veille" des données dans Firestore n'est pas implémentée.
+   - Suppression définitive du compte : L'interface de confirmation est prête. La suppression réelle des données utilisateur et de ses participations (besoins, ressources, collaborations) nécessite une fonction de nettoyage côté serveur (Cloud Function) pour respecter l'intégrité de la base de données.
+   - Modification du mot de passe : Non implémenté car cela nécessite l'intégration des flux de réinitialisation d'e-mail de Firebase Auth.
+   - Sessions / Appareils connectés : Cette information n'est pas exposée par le SDK Firebase Client par défaut.
+
+2. CONFIDENTIALITÉ & VISIBILITÉ
+   - Filtrage de visibilité (Public / Église / Privé) : Les préférences sont enregistrées dans le profil utilisateur, mais les requêtes Firestore (dans dataService.ts) ne filtrent pas encore dynamiquement les résultats en fonction de ces réglages.
+   - Visibilité de la localisation/compétences : Les commutateurs UI sont actifs, mais les vues publiques des autres utilisateurs (si implémentées plus tard) devront respecter ces flags.
+
+3. NOTIFICATIONS (PARAMÈTRES AVANCÉS)
+   - Notifications Push/Système : Les toggles UI enregistrent les préférences dans Firestore. Cependant, le système d'envoi réel (via Firebase Cloud Messaging) pour chaque catégorie (besoins compatibles, demandes d'aide, etc.) n'est pas encore configuré.
+
+4. PRÉFÉRENCES
+   - Multilingue (Anglais) : L'interface indique "Coming soon". Le système i18n actuel est principalement configuré pour le français.
+   - Mode Sombre / Accessibilité : La structure est prête dans le menu, mais les classes CSS Tailwind correspondantes n'ont pas été appliquées globalement à toute l'application.
+
+5. AIDE & ASSISTANCE
+   - FAQ & Centre d'aide : Les liens sont présents, mais pointent vers des placeholders. Le contenu réel du centre d'aide (articles, tutoriels) reste à rédiger et à héberger.
+   - Signaler un problème / Contacter ALLORA : Ces actions nécessitent la création d'un service de ticketing ou d'un envoi de mail automatique vers le support.
+
+6. MES ÉGLISES (GESTION AVANCÉE)
+   - Quitter une église : L'action nécessite une fonction spécifique pour supprimer proprement le document 'churchMembers' correspondant.
+   - Gestion pour les leaders : L'interface de gestion administrative pour les propriétaires d'églises n'est pas intégrée dans ce menu de paramètres personnels.
+
+NOTE TECHNIQUE :
+Les schémas de données ont été mis à jour dans 'src/types/index.ts' pour inclure 'notificationPreferences' et 'privacySettings', permettant ainsi la persistance de ces choix dès que le backend sera prêt à les exploiter.

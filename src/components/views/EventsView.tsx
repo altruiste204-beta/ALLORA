@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { EmptyState } from '../common/EmptyState';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { Modal } from '../common/Modal';
@@ -19,18 +20,11 @@ interface EventsViewProps {
   onOpenActionSheet: () => void;
 }
 
-const CATEGORIES = [
-  'Conférence',
-  'Séminaire',
-  'Formation',
-  'Culte spécial',
-  'Concert',
-  'Rencontre',
-  'Activité communautaire'
-];
-
 export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
   const { user, profile } = useAuth();
+  const { t, language } = useLanguage();
+  
+  const CATEGORIES = Object.values(t.events.categoriesList);
   
   // Data States
   const [events, setEvents] = useState<CommunityEvent[]>([]);
@@ -157,12 +151,12 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
     e.preventDefault();
     if (!user) return;
     if (!formTitle.trim() || !formDescription.trim() || !formLocation.trim() || !formStartAt || !formEndAt) {
-      setError('Veuillez remplir tous les champs obligatoires.');
+      setError(t.events.errorFillAll);
       return;
     }
 
     if (new Date(formStartAt) >= new Date(formEndAt)) {
-      setError('La date de début doit être antérieure à la date de fin.');
+      setError(t.events.errorDateOrder);
       return;
     }
 
@@ -179,7 +173,7 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
       category: formCategory,
       organizerType: formOrganizerType,
       organizerId: user.uid,
-      organizerName: profile?.displayName || user.displayName || 'Organisateur',
+      organizerName: profile?.displayName || user.displayName || (t.events.organizerPersonal),
       churchId: formOrganizerType === 'church' ? formChurchId : undefined,
       churchName: formOrganizerType === 'church' && selectedChurch ? selectedChurch.churchName : undefined,
       location: formLocation.trim(),
@@ -203,7 +197,7 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
       }
       await loadData();
     } catch (err: any) {
-      setError(err.message || 'Une erreur est survenue lors de la sauvegarde.');
+      setError(err.message || (t.events.errorSaving));
     } finally {
       setSubmitting(false);
     }
@@ -222,12 +216,12 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
       await registerForEvent(
         selectedEvent.eventId,
         user.uid,
-        profile?.displayName || user.displayName || 'Participant ALLORA',
+        profile?.displayName || user.displayName || (t.profile.member),
         user.email || ''
       );
       await loadParticipants(selectedEvent.eventId);
     } catch (err: any) {
-      setError(err.message || "Erreur lors de l'inscription.");
+      setError(err.message || (t.events.errorRegistration));
     } finally {
       setSubmitting(false);
     }
@@ -236,14 +230,14 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
   // Cancel Participation
   const handleCancelParticipation = async () => {
     if (!user || !selectedEvent) return;
-    if (!window.confirm('Voulez-vous vraiment annuler votre participation ?')) return;
+    if (!window.confirm(t.events.confirmCancelParticipation)) return;
     setSubmitting(true);
     setError(null);
     try {
       await cancelEventParticipation(selectedEvent.eventId, user.uid);
       await loadParticipants(selectedEvent.eventId);
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de l\'annulation.');
+      setError(err.message || (t.events.errorCancellation));
     } finally {
       setSubmitting(false);
     }
@@ -253,8 +247,8 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
   const handleUpdateStatus = async (status: EventStatus) => {
     if (!user || !selectedEvent) return;
     const msg = status === 'cancelled' 
-      ? 'Voulez-vous vraiment annuler cet événement ? Une notification sera envoyée aux participants.'
-      : 'Voulez-vous marquer cet événement comme terminé ?';
+      ? t.events.confirmCancelEvent
+      : t.events.confirmCompleteEvent;
     if (!window.confirm(msg)) return;
 
     setSubmitting(true);
@@ -263,7 +257,7 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
       setSelectedEvent({ ...selectedEvent, status });
       await loadData();
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de la mise à jour du statut.');
+      setError(err.message || (t.events.errorUpdateStatus));
     } finally {
       setSubmitting(false);
     }
@@ -309,34 +303,34 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
   return (
     <div className="space-y-6">
       {/* Header Panel */}
-      <div className="rounded-3xl bg-[#FFFFFF] border border-[#E8E4D9] p-6 sm:p-7 shadow-xs">
+      <div className="rounded-3xl bg-[#FFFFFF] dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 p-6 sm:p-7 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF9F6] border border-[#E8E4D9] text-[11px] font-semibold text-[#19344A] mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-3">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
                 <line x1="8" y1="2" x2="8" y2="6" />
               </svg>
-              <span>Rencontres, cultes & conférences</span>
+              <span>{t.events.badge}</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[#19344A] tracking-tight">
-              Événements & Activités
+            <h1 className="text-xl sm:text-2xl font-bold text-[#19344A] dark:text-white tracking-tight">
+              {t.events.title}
             </h1>
-            <p className="text-xs sm:text-sm text-[#19344A]/70 mt-1 max-w-xl">
-              Trouvez, rejoignez et collaborez autour d'activités chrétiennes locales et inter-églises.
+            <p className="text-xs sm:text-sm text-[#19344A]/70 dark:text-[#FAF9F6]/70 mt-1 max-w-xl">
+              {t.events.subtitle}
             </p>
           </div>
 
           <button
             onClick={handleOpenCreate}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#19344A] text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] transition-all cursor-pointer shrink-0 shadow-xs"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#19344A] dark:bg-blue-600 text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] dark:hover:bg-[#67B7E8] transition-all cursor-pointer shrink-0 shadow-xs"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <span>Créer un événement</span>
+            <span>{t.events.createBtn}</span>
           </button>
         </div>
 
@@ -346,15 +340,15 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Rechercher par titre, lieu, église..."
-            className="w-full px-4 py-2 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#111315] placeholder:text-[#19344A]/40 focus:outline-none focus:border-[#19344A]"
+            placeholder={t.events.searchPlaceholder}
+            className="w-full px-4 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#111315] dark:text-[#FAF9F6]/70 placeholder:text-[#19344A]/40 dark:placeholder:text-[#19344A] focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8]"
           />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#19344A] focus:outline-none focus:border-[#19344A]"
+            className="px-3 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#19344A] dark:text-[#FAF9F6]/70 focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8]"
           >
-            <option value="">Toutes les catégories</option>
+            <option value="">{t.events.allCategories}</option>
             {CATEGORIES.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
@@ -362,24 +356,24 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
           <select
             value={selectedVisibility}
             onChange={(e) => setSelectedVisibility(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#19344A] focus:outline-none focus:border-[#19344A]"
+            className="px-3 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#19344A] dark:text-[#FAF9F6]/70 focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8]"
           >
-            <option value="">Toutes les visibilités</option>
-            <option value="public">Public</option>
-            <option value="church">Église interne</option>
-            <option value="private">Privé</option>
+            <option value="">{t.events.allVisibilities}</option>
+            <option value="public">{t.events.visibilityPublic}</option>
+            <option value="church">{t.events.visibilityChurch}</option>
+            <option value="private">{t.events.visibilityPrivate}</option>
           </select>
         </div>
       </div>
 
       {/* Main Listing Area */}
       {loading ? (
-        <LoadingSpinner text="Chargement de vos événements..." />
+        <LoadingSpinner text={t.events.loading} />
       ) : filteredEvents.length === 0 ? (
         <EmptyState
-          title="Aucun événement ne correspond à vos critères."
-          description="Soyez le premier à proposer un événement, une conférence ou un culte spécial pour la communauté !"
-          actionLabel="Créer un événement"
+          title={t.events.emptyTitle}
+          description={t.events.emptySubtitle}
+          actionLabel={t.events.createBtn}
           onAction={handleOpenCreate}
         />
       ) : (
@@ -393,48 +387,48 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
               <div
                 key={ev.eventId}
                 onClick={() => handleViewDetails(ev)}
-                className={`p-5 rounded-3xl bg-[#FFFFFF] border border-[#E8E4D9] shadow-xs hover:border-[#19344A]/40 transition-all flex flex-col justify-between cursor-pointer relative overflow-hidden ${isCancelled ? 'opacity-60' : ''}`}
+                className={`p-5 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-xs hover:border-[#19344A]/40 dark:hover:border-[#67B7E8]/40 transition-all flex flex-col justify-between cursor-pointer relative overflow-hidden ${isCancelled ? 'opacity-60' : ''}`}
               >
                 {/* Upper row info */}
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2.5">
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#FAF9F6] border border-[#E8E4D9] text-[10px] font-bold text-[#19344A]/80 uppercase">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[10px] font-bold text-[#19344A]/80 dark:text-[#FAF9F6]/70 uppercase">
                       {ev.category}
                     </span>
 
                     {/* Status Badge */}
                     {isCancelled && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-red-50 border border-red-200 text-[10px] font-extrabold text-red-700 uppercase">
-                        Annulé
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#FDECEE] text-[#DC3545] border border-[#DC3545]/20 text-[10px] font-extrabold uppercase">
+                        {t.events.statusCancelled}
                       </span>
                     )}
                     {isCompleted && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-gray-50 border border-gray-200 text-[10px] font-extrabold text-gray-500 uppercase">
-                        Terminé
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#EAF7F0] text-[#22A06B] border border-[#22A06B]/20 text-[10px] font-extrabold uppercase">
+                        {t.events.statusCompleted}
                       </span>
                     )}
                     {isDraft && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-extrabold text-amber-700 uppercase">
-                        Brouillon
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#FFF4DD] text-[#F59E0B] border border-[#F59E0B]/20 text-[10px] font-extrabold uppercase">
+                        {t.events.statusDraft}
                       </span>
                     )}
                     {!isCancelled && !isCompleted && !isDraft && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-extrabold text-emerald-700 uppercase">
-                        Ouvert
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#EAF7F0] text-[#22A06B] border border-[#22A06B]/20 text-[10px] font-extrabold uppercase">
+                        {t.events.statusOpen}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="text-base font-bold text-[#19344A] tracking-tight line-clamp-1">
+                  <h3 className="text-base font-bold text-[#19344A] dark:text-white tracking-tight line-clamp-1">
                     {ev.title}
                   </h3>
-                  <p className="text-xs text-[#19344A]/70 line-clamp-2 mt-1 leading-relaxed">
+                  <p className="text-xs text-[#19344A]/70 dark:text-[#FAF9F6]/70 line-clamp-2 mt-1 leading-relaxed">
                     {ev.description}
                   </p>
                 </div>
 
                 {/* Lower info */}
-                <div className="mt-4 pt-3.5 border-t border-[#E8E4D9]/40 text-[11px] text-[#19344A]/60 flex flex-col gap-1">
+                <div className="mt-4 pt-3.5 border-t border-[#E8E4D9]/40 dark:border-[#67B7E8]/10 text-[11px] text-[#19344A]/60 dark:text-[#FAF9F6]/70 flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 font-medium">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
@@ -442,7 +436,7 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
                       <line x1="8" y1="2" x2="8" y2="6" />
                     </svg>
                     <span>
-                      {new Date(ev.startAt).toLocaleDateString('fr-FR', {
+                      {new Date(ev.startAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                         day: 'numeric',
                         month: 'short',
                         hour: '2-digit',
@@ -460,11 +454,11 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
                   </div>
 
                   <div className="flex items-center justify-between mt-1 text-[10px] font-bold uppercase tracking-wider text-[#19344A]/40">
-                    <span>{ev.churchName || ev.organizerName || 'Individuel'}</span>
+                    <span>{ev.churchName || ev.organizerName || (t.events.individual)}</span>
                     {ev.capacity && ev.capacity > 0 ? (
-                      <span>Capacité : {ev.capacity} places</span>
+                      <span>{t.events.capacityLabel} {ev.capacity} {language === 'fr' ? 'places' : 'seats'}</span>
                     ) : (
-                      <span>Places illimitées</span>
+                      <span>{t.events.fieldCapacityPlaceholder}</span>
                     )}
                   </div>
                 </div>
@@ -481,35 +475,35 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
           setIsCreateOpen(false);
           setIsEditing(false);
         }}
-        title={isEditing ? 'Modifier l\'événement' : 'Créer un événement'}
-        subtitle="Renseignez les détails pour publier l'événement"
+        title={isEditing ? t.events.modalTitleEdit : t.events.modalTitleCreate}
+        subtitle={t.events.modalSubtitle}
       >
         <form onSubmit={handleSubmitForm} className="space-y-4">
           {error && (
-            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 font-semibold">
+            <div className="p-3.5 bg-[#FAF9F6] dark:bg-[#19344A]/20 border border-[#19344A] dark:border-[#19344A] rounded-xl text-xs text-[#19344A] dark:text-[#FAF9F6]/70 font-semibold">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Titre de l'événement *</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.fieldTitle}</label>
             <input
               type="text"
               required
-              placeholder="Ex : Conférence inter-églises sur l'entraide"
+              placeholder={t.events.fieldTitlePlaceholder}
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#111315] focus:outline-none focus:border-[#19344A]"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#111315] dark:text-white placeholder:text-[#19344A]/40 focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8]"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Catégorie *</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.fieldCategory}</label>
               <select
                 value={formCategory}
                 onChange={(e) => setFormCategory(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#19344A] focus:outline-none"
+                className="w-full px-3 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#19344A] dark:text-[#FAF9F6]/70 focus:outline-none"
               >
                 {CATEGORIES.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -518,23 +512,23 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Visibilité *</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.fieldVisibility}</label>
               <select
                 value={formVisibility}
                 onChange={(e) => setFormVisibility(e.target.value as EventVisibility)}
-                className="w-full px-3 py-2.5 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#19344A] focus:outline-none"
+                className="w-full px-3 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#19344A] dark:text-[#FAF9F6]/70 focus:outline-none"
               >
-                <option value="public">Public (Tout le monde)</option>
-                <option value="church">Membres d'église uniquement</option>
-                <option value="private">Privé (Organisateurs uniquement)</option>
+                <option value="public">{t.events.visibilityPublic}</option>
+                <option value="church">{t.events.visibilityChurch}</option>
+                <option value="private">{t.events.visibilityPrivate}</option>
               </select>
             </div>
           </div>
 
-          <div className="p-4 bg-[#FAF9F6] border border-[#E8E4D9] rounded-2xl space-y-3">
-            <span className="block text-[10px] font-extrabold uppercase tracking-widest text-[#19344A]/60">Organisateur & Entité</span>
+          <div className="p-4 bg-[#FAF9F6] dark:bg-[#1D334D]/50 border border-[#E8E4D9] dark:border-[#67B7E8]/10 rounded-2xl space-y-3">
+            <span className="block text-[10px] font-extrabold uppercase tracking-widest text-[#19344A]/60 dark:text-[#FAF9F6]/70">{t.events.organizerTitle}</span>
             
-            <div className="flex gap-4 text-xs font-semibold">
+            <div className="flex gap-4 text-xs font-semibold text-[#19344A] dark:text-[#FAF9F6]/70">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
@@ -543,7 +537,7 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
                   onChange={() => setFormOrganizerType('user')}
                   className="accent-[#19344A]"
                 />
-                En mon nom personnel
+                {t.events.organizerPersonal}
               </label>
 
               {userMemberships.length > 0 && (
@@ -555,18 +549,18 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
                     onChange={() => setFormOrganizerType('church')}
                     className="accent-[#19344A]"
                   />
-                  Au nom d'une église que je dirige
+                  {t.events.organizerChurch}
                 </label>
               )}
             </div>
 
             {formOrganizerType === 'church' && userMemberships.length > 0 && (
               <div className="mt-2.5">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Sélectionner l'église *</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.selectChurch}</label>
                 <select
                   value={formChurchId}
                   onChange={(e) => setFormChurchId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8E4D9] text-xs text-[#19344A]"
+                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#19344A] dark:text-[#FAF9F6]/70"
                 >
                   {userMemberships.map(m => (
                     <option key={m.churchId} value={m.churchId}>{m.churchName}</option>
@@ -577,78 +571,78 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Description détaillée *</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.fieldDesc}</label>
             <textarea
               required
               rows={4}
-              placeholder="Expliquez l'objectif de l'activité, le programme, qui peut venir..."
+              placeholder={t.events.fieldDescPlaceholder}
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#111315] focus:outline-none resize-none"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#111315] dark:text-white placeholder:text-[#19344A]/40 focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Lieu de l'événement *</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.fieldLocation}</label>
             <input
               type="text"
               required
-              placeholder="Ex : Église centrale ou adresse complète, Salle de réunion..."
+              placeholder={t.events.fieldLocationPlaceholder}
               value={formLocation}
               onChange={(e) => setFormLocation(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#111315] focus:outline-none"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#111315] dark:text-white placeholder:text-[#19344A]/40 focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8]"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Début *</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.fieldStart}</label>
               <input
                 type="datetime-local"
                 required
                 value={formStartAt}
                 onChange={(e) => setFormStartAt(e.target.value)}
-                className="w-full px-4 py-2 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#111315] focus:outline-none"
+                className="w-full px-4 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#111315] dark:text-white focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Fin *</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.fieldEnd}</label>
               <input
                 type="datetime-local"
                 required
                 value={formEndAt}
                 onChange={(e) => setFormEndAt(e.target.value)}
-                className="w-full px-4 py-2 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#111315] focus:outline-none"
+                className="w-full px-4 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#111315] dark:text-white focus:outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Capacité max. (optionnel)</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.fieldCapacity}</label>
               <input
                 type="number"
                 min="0"
-                placeholder="Laissez vide si illimité"
+                placeholder={t.events.fieldCapacityPlaceholder}
                 value={formCapacity}
                 onChange={(e) => setFormCapacity(e.target.value)}
-                className="w-full px-4 py-2 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#111315] focus:outline-none"
+                className="w-full px-4 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#111315] dark:text-white focus:outline-none"
               />
             </div>
 
             {isEditing && (
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] mb-1">Statut *</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">{t.events.fieldStatus}</label>
                 <select
                   value={formStatus}
                   onChange={(e) => setFormStatus(e.target.value as EventStatus)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#FAF9F6] border border-[#E8E4D9] text-xs text-[#19344A] focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#19344A] dark:text-[#FAF9F6]/70 focus:outline-none"
                 >
-                  <option value="draft">Brouillon</option>
-                  <option value="published">Publié / Ouvert</option>
-                  <option value="cancelled">Annulé</option>
-                  <option value="completed">Terminé</option>
+                  <option value="draft">{t.events.statusDraft}</option>
+                  <option value="published">{t.events.statusOpen}</option>
+                  <option value="cancelled">{t.events.statusCancelled}</option>
+                  <option value="completed">{t.events.statusCompleted}</option>
                 </select>
               </div>
             )}
@@ -661,16 +655,16 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
                 setIsCreateOpen(false);
                 setIsEditing(false);
               }}
-              className="px-4 py-2 rounded-xl border border-[#E8E4D9] text-xs font-semibold text-[#19344A]/80 hover:bg-[#FAF9F6] cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs font-semibold text-[#19344A]/80 dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D cursor-pointer"
             >
-              Annuler
+              {t.actions.cancel}
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl bg-[#19344A] text-white text-xs font-bold hover:bg-[#111315] disabled:opacity-50 cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-[#19344A] dark:bg-blue-600 text-white text-xs font-bold hover:bg-[#111315] dark:hover:bg-[#67B7E8] disabled:opacity-50 cursor-pointer"
             >
-              {submitting ? 'Enregistrement...' : 'Enregistrer'}
+              {submitting ? (t.events.saving) : t.events.saveBtn}
             </button>
           </div>
         </form>
@@ -682,34 +676,34 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
           isOpen={isDetailOpen}
           onClose={() => setIsDetailOpen(false)}
           title={selectedEvent.title}
-          subtitle={`Activité organisée par ${selectedEvent.churchName || selectedEvent.organizerName || 'un membre ALLORA'}`}
+          subtitle={`${t.events.detailsOrganizer} ${selectedEvent.churchName || selectedEvent.organizerName || (t.events.alloraMember)}`}
         >
           <div className="space-y-5 text-xs text-[#111315]">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-800 font-semibold">
+              <div className="p-3 bg-[#FAF9F6] border border-[#19344A] rounded-xl text-[#19344A] font-semibold">
                 {error}
               </div>
             )}
 
             {/* Event Header Status */}
-            <div className="flex items-center justify-between p-3.5 bg-[#FAF9F6] border border-[#E8E4D9] rounded-2xl">
+            <div className="flex items-center justify-between p-3.5 bg-[#FAF9F6] dark:bg-[#1D334D]/50 border border-[#E8E4D9] dark:border-[#67B7E8]/20 rounded-2xl">
               <div>
-                <span className="block text-[10px] font-bold text-[#19344A]/60 uppercase">Catégorie</span>
-                <span className="text-xs font-bold text-[#19344A]">{selectedEvent.category}</span>
+                <span className="block text-[10px] font-bold text-[#19344A]/60 dark:text-[#FAF9F6]/70 uppercase">{t.events.fieldCategory}</span>
+                <span className="text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70">{selectedEvent.category}</span>
               </div>
               <div className="text-right">
-                <span className="block text-[10px] font-bold text-[#19344A]/60 uppercase">Participants</span>
-                <span className="text-xs font-bold text-[#19344A]">
+                <span className="block text-[10px] font-bold text-[#19344A]/60 dark:text-[#FAF9F6]/70 uppercase">{t.events.detailsParticipants}</span>
+                <span className="text-xs font-bold text-[#19344A] dark:text-white">
                   {activeRegisteredCount}
-                  {selectedEvent.capacity ? ` / ${selectedEvent.capacity}` : ' inscrits'}
+                  {selectedEvent.capacity ? ` / ${selectedEvent.capacity}` : ` ${t.events.registered}`}
                 </span>
               </div>
             </div>
 
             {/* Timings & Place */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3.5 bg-white border border-[#E8E4D9] rounded-2xl flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#FAF9F6] border border-[#E8E4D9] flex items-center justify-center text-[#19344A] shrink-0">
+              <div className="p-3.5 bg-white dark:bg-[#1D334D]/50 border border-[#E8E4D9] dark:border-[#67B7E8]/20 rounded-2xl flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#FAF9F6] dark:bg-#253C5A border border-[#E8E4D9] dark:border-slate-600 flex items-center justify-center text-[#19344A] dark:text-[#FAF9F6]/70 shrink-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
                     <line x1="16" y1="2" x2="16" y2="6" />
@@ -717,34 +711,34 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
                   </svg>
                 </div>
                 <div>
-                  <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#19344A]/40 mb-0.5">Dates et horaires</span>
-                  <span className="font-bold text-[#19344A]">
-                    Début : {new Date(selectedEvent.startAt).toLocaleString('fr-FR')}
+                  <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#19344A]/40 dark:text-[#FAF9F6]/70 mb-0.5">{t.events.detailsDates}</span>
+                  <span className="font-bold text-[#19344A] dark:text-[#FAF9F6]/70">
+                    {t.events.detailsStart} {new Date(selectedEvent.startAt).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}
                   </span>
-                  <span className="block text-[10px] text-[#19344A]/70 mt-0.5">
-                    Fin : {new Date(selectedEvent.endAt).toLocaleString('fr-FR')}
+                  <span className="block text-[10px] text-[#19344A]/70 dark:text-[#FAF9F6]/70 mt-0.5">
+                    {t.events.detailsEnd} {new Date(selectedEvent.endAt).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}
                   </span>
                 </div>
               </div>
 
-              <div className="p-3.5 bg-white border border-[#E8E4D9] rounded-2xl flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#FAF9F6] border border-[#E8E4D9] flex items-center justify-center text-[#19344A] shrink-0">
+              <div className="p-3.5 bg-white dark:bg-[#1D334D]/50 border border-[#E8E4D9] dark:border-[#67B7E8]/20 rounded-2xl flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#FAF9F6] dark:bg-#253C5A border border-[#E8E4D9] dark:border-slate-600 flex items-center justify-center text-[#19344A] dark:text-[#FAF9F6]/70 shrink-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                     <circle cx="12" cy="10" r="3" />
                   </svg>
                 </div>
                 <div>
-                  <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#19344A]/40 mb-0.5">Lieu / Salle</span>
-                  <span className="font-bold text-[#19344A]">{selectedEvent.location}</span>
+                  <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#19344A]/40 dark:text-[#FAF9F6]/70 mb-0.5">{t.events.detailsLocation}</span>
+                  <span className="font-bold text-[#19344A] dark:text-[#FAF9F6]/70">{selectedEvent.location}</span>
                 </div>
               </div>
             </div>
 
             {/* Description */}
             <div className="space-y-1">
-              <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#19344A]/40">Présentation</span>
-              <p className="text-xs text-[#19344A]/80 leading-relaxed bg-[#FAF9F6] p-4 rounded-2xl border border-[#E8E4D9]/60 whitespace-pre-line">
+              <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#19344A]/40 dark:text-[#FAF9F6]/70">{t.events.detailsAbout}</span>
+              <p className="text-xs text-[#19344A]/80 dark:text-[#FAF9F6]/70 leading-relaxed bg-[#FAF9F6] dark:bg-[#1D334D]/50 p-4 rounded-2xl border border-[#E8E4D9]/60 dark:border-[#67B7E8]/20 whitespace-pre-line">
                 {selectedEvent.description}
               </p>
             </div>
@@ -757,19 +751,19 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
                   <button
                     onClick={handleCancelParticipation}
                     disabled={submitting}
-                    className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-xl disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 bg-[#FFF4DD] border border-[#F59E0B]/30 text-[#F59E0B] font-bold rounded-xl disabled:opacity-50 cursor-pointer"
                   >
-                    Annuler ma participation
+                    {t.events.unregisterBtn}
                   </button>
                 ) : (
                   <button
                     onClick={handleRegister}
                     disabled={submitting || (selectedEvent.capacity ? activeRegisteredCount >= selectedEvent.capacity : false)}
-                    className="px-5 py-2.5 bg-[#19344A] hover:bg-[#111315] text-white font-bold rounded-xl disabled:opacity-50 cursor-pointer"
+                    className="px-5 py-2.5 bg-[#67B7E8] hover:opacity-90 text-white font-bold rounded-xl disabled:opacity-50 cursor-pointer shadow-sm"
                   >
                     {selectedEvent.capacity && activeRegisteredCount >= selectedEvent.capacity 
-                      ? 'Capacité maximale atteinte' 
-                      : 'Participer à cet événement'}
+                      ? t.events.fullCapacity 
+                      : t.events.registerBtn}
                   </button>
                 )
               )}
@@ -779,24 +773,24 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={handleStartEdit}
-                    className="px-3.5 py-2 border border-[#E8E4D9] text-[#19344A] font-bold rounded-xl hover:bg-[#FAF9F6] cursor-pointer"
+                    className="px-3.5 py-2 border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[#19344A] dark:text-[#FAF9F6]/70 font-bold rounded-xl hover:bg-[#FAF9F6] transition-colors"
                   >
-                    Modifier les détails
+                    {t.events.editDetails}
                   </button>
 
                   {selectedEvent.status === 'published' && (
                     <>
                       <button
                         onClick={() => handleUpdateStatus('cancelled')}
-                        className="px-3.5 py-2 bg-red-50 text-red-700 hover:bg-red-100 font-bold rounded-xl cursor-pointer"
+                        className="px-3.5 py-2 bg-[#FDECEE] border border-[#DC3545]/20 text-[#DC3545] hover:bg-[#DC3545]/10 font-bold rounded-xl cursor-pointer transition-colors"
                       >
-                        Annuler l'événement
+                        {t.events.cancelEventBtn}
                       </button>
                       <button
                         onClick={() => handleUpdateStatus('completed')}
-                        className="px-3.5 py-2 bg-[#19344A] text-white hover:bg-[#111315] font-bold rounded-xl cursor-pointer"
+                        className="px-3.5 py-2 bg-[#22A06B] text-white hover:opacity-90 font-bold rounded-xl cursor-pointer transition-colors"
                       >
-                        Marquer comme terminé
+                        {t.events.completeEventBtn}
                       </button>
                     </>
                   )}
@@ -806,18 +800,18 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
 
             {/* Participant List (Visible to Organizer or Church Leaders for management) */}
             {isOrganizer && (
-              <div className="space-y-2 pt-4 border-t border-[#E8E4D9]/40">
-                <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-[#19344A]">
-                  Membres inscrits ({activeRegisteredCount})
+              <div className="space-y-2 pt-4 border-t border-[#E8E4D9]/40 dark:border-[#67B7E8]/10">
+                <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-[#19344A] dark:text-white">
+                  {t.events.registeredMembers} ({activeRegisteredCount})
                 </h4>
                 {activeRegisteredCount === 0 ? (
-                  <p className="text-[10px] text-[#19344A]/50 italic">Aucun membre inscrit pour le moment.</p>
+                  <p className="text-[10px] text-[#19344A]/50 dark:text-[#FAF9F6]/70 italic">{t.events.noRegisteredMembers}</p>
                 ) : (
                   <div className="max-h-40 overflow-y-auto space-y-1.5 pr-2">
                     {participants.filter(p => p.status === 'registered').map(p => (
-                      <div key={p.participantId} className="flex items-center justify-between p-2 bg-[#FAF9F6] border border-[#E8E4D9]/40 rounded-xl text-[11px]">
-                        <span className="font-semibold text-[#19344A]">{p.displayName}</span>
-                        <span className="text-[#19344A]/60">{p.email}</span>
+                      <div key={p.participantId} className="flex items-center justify-between p-2 bg-[#FAF9F6] dark:bg-[#1D334D]/50 border border-[#E8E4D9]/40 dark:border-[#67B7E8]/10 rounded-xl text-[11px]">
+                        <span className="font-semibold text-[#19344A] dark:text-[#FAF9F6]/70">{p.displayName}</span>
+                        <span className="text-[#19344A]/60 dark:text-[#FAF9F6]/70">{p.email}</span>
                       </div>
                     ))}
                   </div>

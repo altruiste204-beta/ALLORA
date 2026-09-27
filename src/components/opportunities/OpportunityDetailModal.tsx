@@ -101,10 +101,10 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
 
   const getTypeLabel = (type: Opportunity['type']) => {
     switch (type) {
-      case 'service': return { label: 'Service proposé', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
-      case 'job': return { label: 'Emploi / Mission', bg: 'bg-blue-50 text-blue-700 border-blue-200' };
-      case 'volunteer': return { label: 'Bénévolat', bg: 'bg-purple-50 text-purple-700 border-purple-200' };
-      case 'skill_request': return { label: 'Recherche de compétence', bg: 'bg-amber-50 text-amber-700 border-amber-200' };
+      case 'service': return { label: 'Service proposé', bg: 'bg-[#FAF9F6] text-[#67B7E8] border-blue-200' };
+      case 'job': return { label: 'Emploi / Mission', bg: 'bg-[#FAF9F6] text-[#67B7E8] border-blue-200' };
+      case 'volunteer': return { label: 'Bénévolat', bg: 'bg-[#FAF9F6] text-[#67B7E8] border-blue-200' };
+      case 'skill_request': return { label: 'Recherche de compétence', bg: 'bg-[#FAF9F6] text-[#67B7E8] border-blue-200' };
     }
   };
 
@@ -112,36 +112,36 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-        <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div className="bg-white dark:bg-[#19344A] rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-[#67B7E8]/10">
           {/* Header */}
-          <div className="p-6 border-b border-gray-100 flex items-start justify-between sticky top-0 bg-white z-10">
+          <div className="p-6 border-b border-gray-100 dark:border-[#67B7E8]/10 flex items-start justify-between sticky top-0 bg-white dark:bg-[#19344A] z-10">
             <div>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${typeConfig.bg}`}>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${typeConfig.bg} dark:bg-[#1D334D] dark:border-[#67B7E8]/20`}>
                   {typeConfig.label}
                 </span>
-                <span className="bg-gray-100 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <span className="bg-[#FAF9F6] dark:bg-[#1D334D] text-[#19344A] dark:text-[#FAF9F6]/70 text-xs font-semibold px-2.5 py-1 rounded-full">
                   {opportunity.category}
                 </span>
                 {opportunity.visibility === 'church' && (
-                  <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-amber-200">
+                  <span className="inline-flex items-center gap-1 bg-[#FAF9F6] dark:bg-blue-950/30 text-[#67B7E8] dark:text-[#67B7E8] text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-900/50">
                     <Lock className="w-3 h-3" /> Membres église
                   </span>
                 )}
                 {opportunity.visibility === 'public' && (
-                  <span className="inline-flex items-center gap-1 bg-gray-50 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200">
+                  <span className="inline-flex items-center gap-1 bg-[#FAF9F6] dark:bg-[#1D334D]/50 text-[#19344A] dark:text-[#FAF9F6]/70 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#E8E4D9] dark:border-[#67B7E8]/20">
                     <Globe className="w-3 h-3" /> Public
                   </span>
                 )}
               </div>
-              <h2 className="text-xl font-black text-gray-900 leading-snug">
+              <h2 className="text-xl font-black text-[#19344A] dark:text-white leading-snug">
                 {opportunity.title}
               </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+              className="p-2 text-[#19344A] dark:text-[#FAF9F6]/70 hover:text-[#19344A] dark:hover:text-[#19344A] rounded-full hover:bg-[#FAF9F6] dark:hover:bg-#1D334D transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -150,22 +150,22 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
           {/* Body */}
           <div className="p-6 space-y-6">
             {actionSuccess && (
-              <div className="p-3.5 bg-green-50 text-green-700 text-xs rounded-xl flex items-center gap-2 border border-green-100">
+              <div className="p-3.5 bg-[#FAF9F6] text-[#67B7E8] text-xs rounded-xl flex items-center gap-2 border border-[#E8E4D9]">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{actionSuccess}</span>
               </div>
             )}
             {actionError && (
-              <div className="p-3.5 bg-red-50 text-red-700 text-xs rounded-xl flex items-center gap-2 border border-red-100">
+              <div className="p-3.5 bg-[#FAF9F6] text-[#19344A] text-xs rounded-xl flex items-center gap-2 border border-[#19344A]">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{actionError}</span>
               </div>
             )}
 
             {/* Author / Church Card */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            <div className="flex items-center justify-between p-4 bg-[#FAF9F6] dark:bg-[#1D334D]/50 rounded-2xl border border-gray-100 dark:border-[#67B7E8]/10">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-base overflow-hidden">
+                <div className="w-11 h-11 rounded-full bg-[#67B7E8]/10 dark:bg-[#67B7E8]/20 text-[#67B7E8] dark:text-[#67B7E8] flex items-center justify-center font-bold text-base overflow-hidden">
                   {opportunity.authorPhotoUrl ? (
                     <img src={opportunity.authorPhotoUrl} alt="Auteur" className="w-full h-full object-cover" />
                   ) : (
@@ -173,12 +173,12 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                   )}
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-gray-900">
+                  <h4 className="text-sm font-bold text-[#19344A] dark:text-white">
                     {opportunity.authorName || 'Membre de la communauté'}
                   </h4>
-                  <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <p className="text-xs text-[#19344A] dark:text-[#FAF9F6]/70 flex items-center gap-1.5">
                     {opportunity.churchName && (
-                      <span className="flex items-center gap-1 text-primary font-medium">
+                      <span className="flex items-center gap-1 text-[#67B7E8] dark:text-[#67B7E8] font-medium">
                         <Building2 className="w-3.5 h-3.5" />
                         {opportunity.churchName}
                       </span>
@@ -187,33 +187,33 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="text-right text-[11px] text-gray-400">
+              <div className="text-right text-[11px] text-[#19344A] dark:text-[#FAF9F6]/70">
                 Publié le {new Date(opportunity.createdAt).toLocaleDateString('fr-FR')}
               </div>
             </div>
 
             {/* Location & Availability Meta */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-gray-100">
-                <MapPin className="w-4 h-4 text-primary shrink-0" />
+              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white dark:bg-[#1D334D] border border-gray-100 dark:border-[#67B7E8]/20">
+                <MapPin className="w-4 h-4 text-[#67B7E8] dark:text-[#67B7E8] shrink-0" />
                 <div>
-                  <span className="text-gray-400 block text-[10px] font-bold uppercase">Lieu / Modalité</span>
-                  <span className="font-semibold text-gray-800">{opportunity.location || 'Non spécifié'}</span>
+                  <span className="text-[#19344A] dark:text-[#FAF9F6]/70 block text-[10px] font-bold uppercase">Lieu / Modalité</span>
+                  <span className="font-semibold text-[#19344A] dark:text-[#FAF9F6]/70">{opportunity.location || 'Non spécifié'}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-gray-100">
-                <Calendar className="w-4 h-4 text-primary shrink-0" />
+              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white dark:bg-[#1D334D] border border-gray-100 dark:border-[#67B7E8]/20">
+                <Calendar className="w-4 h-4 text-[#67B7E8] dark:text-[#67B7E8] shrink-0" />
                 <div>
-                  <span className="text-gray-400 block text-[10px] font-bold uppercase">Disponibilité / Timing</span>
-                  <span className="font-semibold text-gray-800">{opportunity.availability || 'À convenir'}</span>
+                  <span className="text-[#19344A] dark:text-[#FAF9F6]/70 block text-[10px] font-bold uppercase">Disponibilité / Timing</span>
+                  <span className="font-semibold text-[#19344A] dark:text-[#FAF9F6]/70">{opportunity.availability || 'À convenir'}</span>
                 </div>
               </div>
             </div>
 
             {/* Description */}
             <div>
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description</h4>
-              <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+              <h4 className="text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-2">Description</h4>
+              <p className="text-sm text-[#19344A] dark:text-[#FAF9F6]/70 whitespace-pre-line leading-relaxed bg-[#FAF9F6]/50 dark:bg-[#1D334D]/30 p-4 rounded-2xl border border-gray-100 dark:border-[#67B7E8]/10">
                 {opportunity.description}
               </p>
             </div>
@@ -221,14 +221,14 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
             {/* Skills required / offered */}
             {opportunity.skills && opportunity.skills.length > 0 && (
               <div>
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-bold text-[#19344A] uppercase tracking-wider mb-2">
                   Compétences & Domaines clés
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {opportunity.skills.map((skill, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center px-3 py-1 rounded-xl bg-primary/10 text-primary text-xs font-bold"
+                      className="inline-flex items-center px-3 py-1 rounded-xl bg-[#67B7E8]/10 text-[#67B7E8] text-xs font-bold"
                     >
                       <Tag className="w-3 h-3 mr-1" />
                       {skill}
@@ -240,17 +240,17 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
 
             {/* Author Responses Management Section */}
             {isAuthor && (
-              <div className="pt-4 border-t border-gray-100 space-y-4">
+              <div className="pt-4 border-t border-gray-100 dark:border-[#67B7E8]/10 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <MessageSquarePlus className="w-4 h-4 text-primary" />
+                  <h4 className="text-sm font-bold text-[#19344A] dark:text-white flex items-center gap-2">
+                    <MessageSquarePlus className="w-4 h-4 text-[#67B7E8] dark:text-[#67B7E8]" />
                     Propositions reçues ({responses.length})
                   </h4>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleChangeOpportunityStatus(opportunity.status === 'open' ? 'closed' : 'open')}
                       disabled={updatingStatus}
-                      className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition-colors"
+                      className="px-3 py-1 bg-[#FAF9F6] dark:bg-[#1D334D] hover:bg-gray-200 dark:hover:bg-#253C5A text-[#19344A] dark:text-[#FAF9F6]/70 text-xs font-semibold rounded-lg transition-colors"
                     >
                       {opportunity.status === 'open' ? 'Clôturer l\'annonce' : 'Rouvrir'}
                     </button>
@@ -258,7 +258,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                       <button
                         onClick={() => handleChangeOpportunityStatus('filled')}
                         disabled={updatingStatus}
-                        className="px-3 py-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-lg transition-colors"
+                        className="px-3 py-1 bg-[#FAF9F6] dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-[#67B7E8] dark:text-[#67B7E8] text-xs font-semibold rounded-lg transition-colors"
                       >
                         Marquer pourvue
                       </button>
@@ -267,9 +267,9 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                 </div>
 
                 {loadingResponses ? (
-                  <div className="text-center py-6 text-xs text-gray-400">Chargement des propositions...</div>
+                  <div className="text-center py-6 text-xs text-[#19344A] dark:text-[#FAF9F6]/70">Chargement des propositions...</div>
                 ) : responses.length === 0 ? (
-                  <div className="p-6 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-xs text-gray-500">
+                  <div className="p-6 text-center bg-[#FAF9F6] dark:bg-[#1D334D]/50 rounded-2xl border border-dashed border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs text-[#19344A] dark:text-[#FAF9F6]/70">
                     Aucune proposition reçue pour le moment.
                   </div>
                 ) : (
@@ -277,27 +277,27 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                     {responses.map((resp) => (
                       <div
                         key={resp.responseId}
-                        className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2.5"
+                        className="p-4 bg-[#FAF9F6] dark:bg-[#1D334D]/50 rounded-2xl border border-gray-100 dark:border-[#67B7E8]/10 space-y-2.5"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">
+                            <div className="w-8 h-8 rounded-full bg-[#67B7E8]/20 dark:bg-[#67B7E8]/20 text-[#67B7E8] dark:text-[#67B7E8] flex items-center justify-center font-bold text-xs">
                               {resp.responderName ? resp.responderName.charAt(0).toUpperCase() : 'U'}
                             </div>
                             <div>
-                              <div className="text-xs font-bold text-gray-900">{resp.responderName}</div>
+                              <div className="text-xs font-bold text-[#19344A] dark:text-white">{resp.responderName}</div>
                               {resp.responderTitle && (
-                                <div className="text-[11px] text-gray-500">{resp.responderTitle}</div>
+                                <div className="text-[11px] text-[#19344A] dark:text-[#FAF9F6]/70">{resp.responderTitle}</div>
                               )}
                             </div>
                           </div>
                           <span
                             className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                               resp.status === 'accepted'
-                                ? 'bg-green-100 text-green-800'
+                                ? 'bg-blue-100 dark:bg-blue-900 text-[#67B7E8] dark:text-[#67B7E8]'
                                 : resp.status === 'rejected'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-amber-100 text-amber-800'
+                                ? 'bg-[#19344A] dark:bg-[#19344A] text-[#19344A] dark:text-[#FAF9F6]/70'
+                                : 'bg-blue-100 dark:bg-blue-900 text-[#67B7E8] dark:text-[#67B7E8]'
                             }`}
                           >
                             {resp.status === 'accepted'
@@ -308,7 +308,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                           </span>
                         </div>
 
-                        <p className="text-xs text-gray-700 bg-white p-3 rounded-xl border border-gray-100">
+                        <p className="text-xs text-[#19344A] dark:text-[#FAF9F6]/70 bg-white dark:bg-[#1D334D] p-3 rounded-xl border border-gray-100 dark:border-[#67B7E8]/20">
                           {resp.message}
                         </p>
 
@@ -318,7 +318,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                             {resp.skills.map((s, i) => (
                               <span
                                 key={i}
-                                className="px-2 py-0.5 bg-gray-200 text-gray-700 text-[10px] rounded-md font-medium"
+                                className="px-2 py-0.5 bg-gray-200 dark:bg-#253C5A text-[#19344A] dark:text-[#FAF9F6]/70 text-[10px] rounded-md font-medium"
                               >
                                 {s}
                               </span>
@@ -327,11 +327,11 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                         )}
 
                         {/* Secure Contact Info */}
-                        <div className="flex items-center gap-4 text-xs text-gray-500 pt-1">
+                        <div className="flex items-center gap-4 text-xs text-[#19344A] dark:text-[#FAF9F6]/70 pt-1">
                           {resp.contactEmail && (
                             <a
                               href={`mailto:${resp.contactEmail}`}
-                              className="flex items-center gap-1 text-primary hover:underline"
+                              className="flex items-center gap-1 text-[#67B7E8] dark:text-[#67B7E8] hover:underline"
                             >
                               <Mail className="w-3.5 h-3.5" />
                               {resp.contactEmail}
@@ -340,7 +340,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                           {resp.contactPhone && (
                             <a
                               href={`tel:${resp.contactPhone}`}
-                              className="flex items-center gap-1 text-primary hover:underline"
+                              className="flex items-center gap-1 text-[#67B7E8] dark:text-[#67B7E8] hover:underline"
                             >
                               <Phone className="w-3.5 h-3.5" />
                               {resp.contactPhone}
@@ -350,16 +350,16 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
 
                         {/* Status Change Buttons for Author */}
                         {resp.status === 'pending' && (
-                          <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                          <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-[#67B7E8]/10">
                             <button
                               onClick={() => handleResponseStatusChange(resp.responseId, 'accepted', resp.responderId)}
-                              className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center gap-1"
+                              className="px-3 py-1 bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center gap-1"
                             >
                               <Check className="w-3 h-3" /> Accepter
                             </button>
                             <button
                               onClick={() => handleResponseStatusChange(resp.responseId, 'rejected', resp.responderId)}
-                              className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-xs rounded-lg transition-colors"
+                              className="px-3 py-1 bg-gray-200 dark:bg-#253C5A hover:bg-gray-300 dark:hover:bg-slate-600 text-[#19344A] dark:text-[#FAF9F6]/70 font-semibold text-xs rounded-lg transition-colors"
                             >
                               Décliner
                             </button>
@@ -374,20 +374,20 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="p-5 border-t border-gray-100 flex items-center justify-between sticky bottom-0 bg-white">
+          <div className="p-5 border-t border-gray-100 dark:border-[#67B7E8]/10 flex items-center justify-between sticky bottom-0 bg-white dark:bg-[#19344A]">
             {isAuthor ? (
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 text-xs font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-[#19344A]/20 rounded-xl transition-colors flex items-center gap-1.5"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>{deleting ? 'Suppression...' : 'Supprimer l\'annonce'}</span>
               </button>
             ) : (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-[#19344A] dark:text-[#FAF9F6]/70">
                 {opportunity.status !== 'open' ? (
-                  <span className="text-amber-600 font-medium">Cette annonce n'accepte plus de propositions.</span>
+                  <span className="text-[#67B7E8] dark:text-[#67B7E8] font-medium">Cette annonce n'accepte plus de propositions.</span>
                 ) : (
                   <span>Prêt à collaborer ? Cliquez ci-contre.</span>
                 )}
@@ -397,7 +397,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
             <div className="flex items-center gap-3">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D rounded-xl transition-colors"
               >
                 Fermer
               </button>
@@ -411,7 +411,7 @@ export const OpportunityDetailModal: React.FC<OpportunityDetailModalProps> = ({
                       setShowRespondModal(true);
                     }
                   }}
-                  className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-2"
+                  className="px-5 py-2.5 bg-[#67B7E8] dark:bg-blue-600 hover:bg-[#67B7E8]-hover dark:hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-2"
                 >
                   <MessageSquarePlus className="w-4 h-4" />
                   <span>

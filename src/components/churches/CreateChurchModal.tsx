@@ -104,18 +104,18 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {errorMsg && (
-          <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#19344A]/30 text-[#19344A] text-xs font-medium">
+          <div className="p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#19344A]/20 border border-[#19344A]/30 dark:border-[#19344A]/30 text-[#19344A] dark:text-[#FAF9F6]/70 text-xs font-medium">
             {errorMsg}
           </div>
         )}
 
         <div className="space-y-3">
           {/* Identité */}
-          <div className="bg-[#FAF9F6] p-3.5 rounded-2xl border border-[#E8E4D9]/60 space-y-3">
-            <h3 className="text-xs font-bold text-[#19344A] uppercase tracking-wider">Identité</h3>
+          <div className="bg-[#FAF9F6] dark:bg-[#1D334D]/50 p-3.5 rounded-2xl border border-[#E8E4D9]/60 dark:border-[#67B7E8]/20 space-y-3">
+            <h3 className="text-xs font-bold text-[#19344A] dark:text-white uppercase tracking-wider">Identité</h3>
             
             <div>
-              <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+              <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                 Nom de l'église *
               </label>
               <input
@@ -125,12 +125,12 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                 placeholder="Ex. Église Évangélique de Lyon"
                 required
                 maxLength={150}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+              <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                 Description de l'église
               </label>
               <textarea
@@ -139,18 +139,18 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                 placeholder="Partagez l'histoire, la vision, et les projets de l'église locale..."
                 rows={3}
                 maxLength={2000}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all resize-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all resize-none"
               />
             </div>
           </div>
 
           {/* Localisation */}
-          <div className="bg-[#FAF9F6] p-3.5 rounded-2xl border border-[#E8E4D9]/60 space-y-3">
-            <h3 className="text-xs font-bold text-[#19344A] uppercase tracking-wider">Localisation</h3>
+          <div className="bg-[#FAF9F6] dark:bg-[#1D334D]/50 p-3.5 rounded-2xl border border-[#E8E4D9]/60 dark:border-[#67B7E8]/20 space-y-3">
+            <h3 className="text-xs font-bold text-[#19344A] dark:text-white uppercase tracking-wider">Localisation</h3>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+                <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                   Pays *
                 </label>
                 <input
@@ -160,12 +160,12 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                   placeholder="Ex. France"
                   required
                   maxLength={100}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+                <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                   Ville *
                 </label>
                 <input
@@ -175,13 +175,13 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                   placeholder="Ex. Lyon"
                   required
                   maxLength={100}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+              <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                 Adresse physique (facultatif)
               </label>
               <input
@@ -190,18 +190,18 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Ex. 14 Rue Victor Hugo"
                 maxLength={250}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all"
               />
             </div>
           </div>
 
           {/* Contacts */}
-          <div className="bg-[#FAF9F6] p-3.5 rounded-2xl border border-[#E8E4D9]/60 space-y-3">
-            <h3 className="text-xs font-bold text-[#19344A] uppercase tracking-wider">Contact</h3>
+          <div className="bg-[#FAF9F6] dark:bg-[#1D334D]/50 p-3.5 rounded-2xl border border-[#E8E4D9]/60 dark:border-[#67B7E8]/20 space-y-3">
+            <h3 className="text-xs font-bold text-[#19344A] dark:text-white uppercase tracking-wider">Contact</h3>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+                <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                   Téléphone de contact
                 </label>
                 <input
@@ -210,12 +210,12 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                   onChange={(e) => setContactPhone(e.target.value)}
                   placeholder="Ex. +33 6 00 00 00 00"
                   maxLength={50}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+                <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                   Email de contact
                 </label>
                 <input
@@ -224,13 +224,13 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder="Ex. contact@eglise.org"
                   maxLength={100}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+              <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                 Site Web officiel
               </label>
               <input
@@ -239,18 +239,18 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="Ex. https://eglise.org"
                 maxLength={150}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all"
               />
             </div>
           </div>
 
           {/* Informations complémentaires */}
-          <div className="bg-[#FAF9F6] p-3.5 rounded-2xl border border-[#E8E4D9]/60 space-y-3">
-            <h3 className="text-xs font-bold text-[#19344A] uppercase tracking-wider">Informations complémentaires</h3>
+          <div className="bg-[#FAF9F6] dark:bg-[#1D334D]/50 p-3.5 rounded-2xl border border-[#E8E4D9]/60 dark:border-[#67B7E8]/20 space-y-3">
+            <h3 className="text-xs font-bold text-[#19344A] dark:text-white uppercase tracking-wider">Informations complémentaires</h3>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+                <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                   Dénomination (facultatif)
                 </label>
                 <input
@@ -259,12 +259,12 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                   onChange={(e) => setDenomination(e.target.value)}
                   placeholder="Ex. Baptiste, Réformée..."
                   maxLength={100}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#19344A] mb-1">
+                <label className="block text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                   Année de fondation (facultatif)
                 </label>
                 <input
@@ -273,25 +273,25 @@ export const CreateChurchModal: React.FC<CreateChurchModalProps> = ({
                   onChange={(e) => setFoundedYear(e.target.value)}
                   placeholder="Ex. 1995"
                   maxLength={10}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] text-xs sm:text-sm text-[#111315] focus:outline-none focus:border-[#19344A] transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] text-xs sm:text-sm text-[#111315] dark:text-white focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="pt-3 border-t border-[#E8E4D9] flex justify-end gap-3.5">
+        <div className="pt-3 border-t border-[#E8E4D9] dark:border-[#67B7E8]/10 flex justify-end gap-3.5">
           <button
             type="button"
             onClick={handleClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-[#19344A]/80 hover:bg-[#FAF9F6] cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-[#19344A]/80 dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D cursor-pointer"
           >
             Annuler
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-5 py-2 rounded-xl bg-[#19344A] text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] disabled:opacity-50 cursor-pointer shadow-xs"
+            className="px-5 py-2 rounded-xl bg-[#19344A] dark:bg-blue-600 text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] dark:hover:bg-blue-700 disabled:opacity-50 cursor-pointer shadow-xs"
           >
             {loading ? 'Création...' : 'Créer l\'église'}
           </button>

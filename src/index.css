@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
-    --allora-blue-light: #67B7E8;
+    --allora-blue-primary: #67B7E8;
+    --allora-blue-deep: #19344A;
+    --allora-blue-light: #DCEFFA;
     --allora-off-white: #FAF9F6;
     --allora-aged-ivory: #E8E4D9;
-    --allora-blue-deep: #19344A;
     --allora-soft-black: #111315;
     --allora-white: #FFFFFF;
+    --allora-cool-gray: #6F7B85;
+    --allora-success: #22A06B;
+    --allora-success-light: #EAF7F0;
+    --allora-attention: #F59E0B;
+    --allora-attention-light: #FFF4DD;
+    --allora-warning: #EAB308;
+    --allora-warning-light: #FFF8D9;
+    --allora-danger: #DC3545;
+    --allora-danger-light: #FDECEE;
+    --allora-info-light: #EAF6FD;
+    --font-sans: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-oswald: 'Oswald', sans-serif;
+    --font-century-gothic: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+  }
+
+  .font-allora,
+  .font-oswald {
+    font-family: 'Oswald', sans-serif !important;
+    letter-spacing: 0.04em;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  input,
+  button,
+  select,
+  textarea,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  a,
+  div {
+    font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 
   body {
-    background-color: #FAF9F6;
-    color: #111315;
-    font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--allora-off-white);
+    color: var(--allora-soft-black);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  h1, h2, h3, .font-heading {
-    font-family: 'Hero New', 'Montserrat', system-ui, sans-serif;
-    letter-spacing: -0.02em;
+  html.dark body {
+    background-color: var(--allora-blue-deep);
+    color: var(--allora-off-white);
   }
 }
 
@@ -34,3 +79,48 @@
   background-image: radial-gradient(circle at 1px 1px, rgba(103, 183, 232, 0.12) 1.5px, transparent 0);
   background-size: 28px 28px;
 }
+
+/* ALLORA Logo Animations */
+@keyframes allora-logo-breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 4px 20px rgba(80, 163, 228, 0.4));
+  }
+  50% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 8px 32px rgba(158, 207, 246, 0.75));
+  }
+}
+
+@keyframes allora-aura-pulse {
+  0%, 100% {
+    transform: scale(0.9);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.7;
+  }
+}
+
+@keyframes allora-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-allora-breathe {
+  animation: allora-logo-breathe 2.8s ease-in-out infinite;
+}
+
+.animate-allora-aura {
+  animation: allora-aura-pulse 3.2s ease-in-out infinite;
+}
+
+.animate-allora-shimmer {
+  animation: allora-shimmer 2s infinite;
+}
+

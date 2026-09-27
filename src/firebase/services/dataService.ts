@@ -21,7 +21,7 @@ import {
   DocumentData
 } from 'firebase/firestore';
 import { db, auth } from '../config';
-import { handleFirestoreError, OperationType } from '../errors';
+import { handleFirestoreError, OperationType, isNetworkOrOfflineError } from '../errors';
 
 // Helper to strictly require authenticated user
 function requireAuthUser(targetUserId?: string): { uid: string; email?: string | null; displayName?: string | null } {
@@ -58,6 +58,7 @@ import {
   OpportunityResponse,
   OpportunityResponseStatus,
   UserProfile,
+  SupportTicket,
   PaginatedResult
 } from '../../types';
 
@@ -94,6 +95,7 @@ export async function fetchNeeds(maxItems = 100): Promise<Need[]> {
     // Sort descending by createdAt manually to avoid indexing requirement on dynamic filters
     return list.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, maxItems);
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'needs');
     return [];
   }
@@ -121,6 +123,7 @@ export async function fetchNeedsPaginated(
       hasMore: snap.docs.length === pageSize
     };
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return { items: [], lastDoc: null, hasMore: false };
     handleFirestoreError(error, OperationType.LIST, 'needs');
     return { items: [], lastDoc: null, hasMore: false };
   }
@@ -194,6 +197,7 @@ export async function fetchResources(maxItems = 100): Promise<Resource[]> {
     // Sort descending by createdAt manually to avoid indexing requirement on dynamic filters
     return list.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, maxItems);
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'resources');
     return [];
   }
@@ -221,6 +225,7 @@ export async function fetchResourcesPaginated(
       hasMore: snap.docs.length === pageSize
     };
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return { items: [], lastDoc: null, hasMore: false };
     handleFirestoreError(error, OperationType.LIST, 'resources');
     return { items: [], lastDoc: null, hasMore: false };
   }
@@ -350,6 +355,7 @@ export async function fetchNeedResponses(needId: string): Promise<NeedResponse[]
     const snap = await getDocs(colRef);
     return snap.docs.map(d => ({ responseId: d.id, ...d.data() } as NeedResponse));
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, `needs/${needId}/responses`);
     return [];
   }
@@ -485,6 +491,7 @@ export async function fetchChurches(maxItems = 100): Promise<Church[]> {
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ churchId: d.id, ...d.data() } as Church));
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'churches');
     return [];
   }
@@ -503,6 +510,7 @@ export async function fetchCollaborations(maxItems = 100, userId?: string): Prom
     // Sort descending by createdAt manually
     return list.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, maxItems);
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'collaborations');
     return [];
   }
@@ -782,6 +790,7 @@ export async function fetchChurchById(churchId: string): Promise<Church | null> 
     }
     return null;
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return null;
     handleFirestoreError(error, OperationType.GET, 'churches');
     return null;
   }
@@ -821,6 +830,7 @@ export async function fetchChurchMembers(churchId: string): Promise<ChurchMember
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ membershipId: d.id, ...d.data() } as ChurchMember));
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'churchMembers');
     return [];
   }
@@ -1073,35 +1083,6 @@ export async function updateMemberRole(
   }
 }
 
-/**
- * Leave a church membership
- */
-export async function leaveChurch(churchId: string, userId: string): Promise<void> {
-  const verifiedUser = requireAuthUser(userId);
-  const membershipId = `${churchId}_${verifiedUser.uid}`;
-  const now = new Date().toISOString();
-
-  try {
-    const batch = writeBatch(db);
-
-    // Update status to 'left' instead of complete deletion to retain history as requested
-    batch.update(doc(db, 'churchMembers', membershipId), {
-      status: 'left',
-      updatedAt: now
-    });
-
-    // Remove from leaderIds in case they were an ADMIN
-    batch.update(doc(db, 'churches', churchId), {
-      leaderIds: arrayRemove(verifiedUser.uid),
-      updatedAt: now
-    });
-
-    await batch.commit();
-  } catch (error) {
-    handleFirestoreError(error, OperationType.UPDATE, 'churchMembers');
-    throw error;
-  }
-}
 
 /**
  * Fetch notifications for a single user with retry resilience
@@ -1187,6 +1168,7 @@ export async function fetchEvents(maxItems = 100): Promise<CommunityEvent[]> {
     // Sort descending by startAt
     return list.sort((a, b) => b.startAt.localeCompare(a.startAt)).slice(0, maxItems);
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'events');
     return [];
   }
@@ -1288,6 +1270,7 @@ export async function fetchEventParticipants(eventId: string): Promise<EventPart
     const snap = await getDocs(q);
     return snap.docs.map(d => d.data() as EventParticipant);
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'eventParticipants');
     return [];
   }
@@ -1421,6 +1404,7 @@ export async function fetchPosts(
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ postId: d.id, ...d.data() } as Post));
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'posts');
     return [];
   }
@@ -1464,6 +1448,7 @@ export async function fetchPostsPaginated(
       hasMore: snap.docs.length === pageSize
     };
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return { items: [], lastDoc: null, hasMore: false };
     handleFirestoreError(error, OperationType.LIST, 'posts');
     return { items: [], lastDoc: null, hasMore: false };
   }
@@ -1563,6 +1548,7 @@ export async function fetchComments(postId: string): Promise<Comment[]> {
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ commentId: d.id, ...d.data() } as Comment));
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'comments');
     return [];
   }
@@ -1687,6 +1673,7 @@ export async function fetchOpportunities(maxItems = 100): Promise<Opportunity[]>
     const list = snap.docs.map(d => ({ opportunityId: d.id, ...d.data() } as Opportunity));
     return list.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, maxItems);
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'opportunities');
     return [];
   }
@@ -1730,6 +1717,7 @@ export async function fetchOpportunitiesPaginated(
       hasMore: snap.docs.length === pageSize
     };
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return { items: [], lastDoc: null, hasMore: false };
     handleFirestoreError(error, OperationType.LIST, 'opportunities');
     return { items: [], lastDoc: null, hasMore: false };
   }
@@ -1746,6 +1734,7 @@ export async function getOpportunityById(opportunityId: string): Promise<Opportu
     }
     return null;
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return null;
     handleFirestoreError(error, OperationType.GET, `opportunities/${opportunityId}`);
     return null;
   }
@@ -1844,6 +1833,7 @@ export async function fetchOpportunityResponses(opportunityId: string): Promise<
       .map(d => ({ responseId: d.id, ...d.data() } as OpportunityResponse))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'opportunityResponses');
     return [];
   }
@@ -1861,6 +1851,7 @@ export async function fetchUserOpportunityResponses(userId: string): Promise<Opp
       .map(d => ({ responseId: d.id, ...d.data() } as OpportunityResponse))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'opportunityResponses');
     return [];
   }
@@ -1936,7 +1927,7 @@ export async function updateOpportunityResponseStatus(
 
     // Notify the responder if accepted or rejected
     if (status === 'accepted' || status === 'rejected') {
-      const statusLabel = status === 'accepted' ? 'acceptée 🎉' : 'déclinée';
+      const statusLabel = status === 'accepted' ? 'acceptée' : 'déclinée';
       await createInternalNotification({
         userId: responderId,
         title: `Réponse ${statusLabel}`,
@@ -1953,13 +1944,38 @@ export async function updateOpportunityResponseStatus(
 
 /**
  * Fetch all user profiles that have skills or professional services
+ * Enforces user privacy settings (respects profileVisibility, locationVisibility, skillsVisibility)
  */
 export async function fetchProfessionalProfiles(skillFilter?: string): Promise<UserProfile[]> {
   try {
     const colRef = collection(db, 'users');
     const snap = await getDocs(colRef);
+    const currentUserId = auth.currentUser?.uid;
+
     let list = snap.docs.map(d => ({ userId: d.id, ...d.data() } as UserProfile));
     
+    // Privacy: Exclude deactivated profiles and private profiles (unless own)
+    list = list.filter(u => {
+      if (u.isDeactivated || u.status === 'deactivated') return false;
+      if (u.privacySettings?.profileVisibility === 'private' && u.userId !== currentUserId) {
+        return false;
+      }
+      return true;
+    });
+
+    // Mask fields according to privacy flags if not current user
+    list = list.map(u => {
+      if (u.userId === currentUserId) return u;
+      return {
+        ...u,
+        location: u.privacySettings?.locationVisibility === false ? undefined : u.location,
+        skills: u.privacySettings?.skillsVisibility === false ? [] : u.skills,
+        professionalTitle: u.privacySettings?.professionalInfoVisibility === 'private' ? undefined : u.professionalTitle,
+        phoneNumber: u.privacySettings?.contactVisibility === 'private' ? undefined : u.phoneNumber,
+        email: u.privacySettings?.contactVisibility === 'private' ? '' : u.email,
+      };
+    });
+
     // Filter profiles that have filled out skills, title or bio
     list = list.filter(u => 
       (u.skills && u.skills.length > 0) || 
@@ -1980,7 +1996,118 @@ export async function fetchProfessionalProfiles(skillFilter?: string): Promise<U
 
     return list;
   } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
     handleFirestoreError(error, OperationType.LIST, 'users');
     return [];
   }
 }
+
+/**
+ * Leave a church with role integrity checks:
+ * - Prevents an OWNER from abandoning an orphaned church if they are the sole owner.
+ * - Removes member association and updates church leaderIds and user churchIds.
+ */
+export async function leaveChurch(churchId: string, userId: string): Promise<{ success: boolean; message: string }> {
+  const verifiedUser = requireAuthUser(userId);
+  const membershipId = `${churchId}_${verifiedUser.uid}`;
+
+  // 1. Get church member record
+  const memberRef = doc(db, 'churchMembers', membershipId);
+  const memberSnap = await getDoc(memberRef);
+  if (!memberSnap.exists()) {
+    throw new Error('Vous n\'êtes pas membre de cette église.');
+  }
+  const membership = memberSnap.data() as ChurchMember;
+
+  // 2. Get church record
+  const churchRef = doc(db, 'churches', churchId);
+  const churchSnap = await getDoc(churchRef);
+  if (!churchSnap.exists()) {
+    throw new Error('L\'église spécifiée n\'existe pas.');
+  }
+  const church = churchSnap.data() as Church;
+
+  // 3. If OWNER, check if there are other OWNERs
+  if (membership.role === 'OWNER') {
+    const ownersSnap = await getDocs(
+      query(collection(db, 'churchMembers'), where('churchId', '==', churchId), where('role', '==', 'OWNER'))
+    );
+    const otherOwners = ownersSnap.docs.filter(d => d.data().userId !== verifiedUser.uid);
+    if (otherOwners.length === 0) {
+      throw new Error(
+        'Vous êtes le seul propriétaire (OWNER) de cette église. Vous devez d\'abord nommer un autre propriétaire dans l\'onglet Églises avant de pouvoir la quitter.'
+      );
+    }
+  }
+
+  // 4. Update church leaderIds if user was a leader
+  if (church.leaderIds && church.leaderIds.includes(verifiedUser.uid)) {
+    const newLeaders = church.leaderIds.filter(id => id !== verifiedUser.uid);
+    await updateDoc(churchRef, { leaderIds: newLeaders, updatedAt: new Date().toISOString() });
+  }
+
+  // 5. Delete membership document
+  await deleteDoc(memberRef);
+
+  // 6. Update user's profile churchIds
+  const userRef = doc(db, 'users', verifiedUser.uid);
+  const userSnap = await getDoc(userRef);
+  if (userSnap.exists()) {
+    const uData = userSnap.data() as UserProfile;
+    const updatedChurches = (uData.churchIds || []).filter(id => id !== churchId);
+    await updateDoc(userRef, { churchIds: updatedChurches, updatedAt: new Date().toISOString() });
+  }
+
+  return { success: true, message: `Vous avez quitté l'église "${church.name}".` };
+}
+
+/**
+ * Create a real persistent Support Ticket or Content Report in Firestore
+ */
+export async function createSupportTicket(
+  ticket: Omit<SupportTicket, 'ticketId' | 'createdAt' | 'updatedAt' | 'status'>
+): Promise<string> {
+  const verifiedUser = requireAuthUser(ticket.userId);
+  const ticketId = `ticket_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const now = new Date().toISOString();
+
+  const payload: SupportTicket = {
+    ticketId,
+    userId: verifiedUser.uid,
+    userEmail: ticket.userEmail,
+    userName: ticket.userName,
+    type: ticket.type,
+    subject: ticket.subject,
+    message: ticket.message,
+    status: 'open',
+    createdAt: now,
+    updatedAt: now
+  };
+
+  try {
+    await setDoc(doc(db, 'supportTickets', ticketId), payload);
+    return ticketId;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, 'supportTickets');
+    throw error;
+  }
+}
+
+/**
+ * Fetch support tickets submitted by current user
+ */
+export async function fetchUserSupportTickets(userId: string): Promise<SupportTicket[]> {
+  const verifiedUser = requireAuthUser(userId);
+  try {
+    const q = query(collection(db, 'supportTickets'), where('userId', '==', verifiedUser.uid));
+    const snap = await getDocs(q);
+    return snap.docs
+      .map(d => d.data() as SupportTicket)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  } catch (error) {
+    if (isNetworkOrOfflineError(error)) return [];
+    handleFirestoreError(error, OperationType.LIST, 'supportTickets');
+    return [];
+  }
+}
+

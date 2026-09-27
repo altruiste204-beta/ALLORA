@@ -208,7 +208,7 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
             </svg>
           </div>
           
-          <div className="absolute -bottom-6 left-6 w-16 h-16 rounded-2xl bg-[#FFFFFF] border border-[#E8E4D9] shadow-xs flex items-center justify-center text-xl font-bold text-[#19344A]">
+          <div className="absolute -bottom-6 left-6 w-16 h-16 rounded-2xl bg-white dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 shadow-xs flex items-center justify-center text-xl font-bold text-[#19344A] dark:text-white">
             {church.name.charAt(0).toUpperCase()}
           </div>
         </div>
@@ -216,11 +216,11 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
         {/* Name and Basic Metadata */}
         <div className="pt-2 pl-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-lg sm:text-xl font-extrabold text-[#19344A] tracking-tight">
+            <h1 className="text-lg sm:text-xl font-extrabold text-[#19344A] dark:text-white tracking-tight">
               {church.name}
             </h1>
             {church.verificationStatus === 'verified' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FAF9F6] border border-[#67B7E8] text-[10px] font-bold text-[#19344A] uppercase tracking-wide">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FAF9F6] dark:bg-blue-900/20 border border-[#67B7E8] dark:border-[#67B7E8]/30 text-[10px] font-bold text-[#19344A] dark:text-[#DCEFFA] uppercase tracking-wide">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
@@ -228,25 +228,25 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
               </span>
             )}
           </div>
-          <p className="text-xs text-[#19344A]/60 mt-0.5 font-semibold">
+          <p className="text-xs text-[#19344A]/60 dark:text-[#FAF9F6]/70 mt-0.5 font-semibold">
             {church.city}, {church.country}
           </p>
         </div>
 
         {/* Member Status Action Bar */}
-        <div className="p-3.5 rounded-2xl bg-[#FAF9F6] border border-[#E8E4D9]/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-3.5 rounded-2xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9]/80 dark:border-[#67B7E8]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-[#19344A]/50">Votre statut</span>
-            <div className="text-xs font-bold text-[#19344A] mt-0.5">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-[#19344A]/50 dark:text-[#FAF9F6]/70">Votre statut</span>
+            <div className="text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 mt-0.5">
               {isApprovedMember ? (
-                <span className="text-[#19344A] flex items-center gap-1">
+                <span className="text-[#19344A] dark:text-white flex items-center gap-1">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#67B7E8" strokeWidth="2.5">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                   Membre actif ({myRole === 'OWNER' ? 'Propriétaire' : myRole === 'ADMIN' ? 'Administrateur' : 'Membre'})
                 </span>
               ) : isPendingMember ? (
-                <span className="text-[#19344A]/70 flex items-center gap-1">
+                <span className="text-[#19344A]/70 dark:text-[#FAF9F6]/70 flex items-center gap-1">
                   <svg className="animate-pulse" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <circle cx="12" cy="12" r="10" />
                     <line x1="12" y1="8" x2="12" y2="12" />
@@ -264,14 +264,14 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
               <>
                 <button
                   onClick={() => setShowJoinCodeInput(!showJoinCodeInput)}
-                  className="px-3.5 py-1.5 rounded-xl border border-[#E8E4D9] bg-[#FFFFFF] hover:bg-[#FAF9F6] text-xs font-semibold text-[#19344A] transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#19344A] hover:bg-[#FAF9F6] dark:hover:bg-#1D334D text-xs font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 transition-all cursor-pointer"
                 >
                   Saisir un code
                 </button>
                 <button
                   onClick={handleRequestJoin}
                   disabled={actionLoading}
-                  className="px-4 py-1.5 rounded-xl bg-[#19344A] text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] disabled:opacity-50 transition-all cursor-pointer shadow-xs"
+                  className="px-4 py-1.5 rounded-xl bg-[#19344A] dark:bg-blue-600 text-white text-xs font-semibold hover:bg-[#111315] dark:hover:bg-blue-700 disabled:opacity-50 transition-all cursor-pointer shadow-xs"
                 >
                   {actionLoading ? 'Envoi...' : 'Demander à rejoindre'}
                 </button>
@@ -282,7 +282,7 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
               <button
                 onClick={handleLeaveChurch}
                 disabled={actionLoading}
-                className="px-3.5 py-1.5 rounded-xl border border-[#19344A]/20 hover:border-[#19344A]/40 text-xs font-semibold text-[#19344A]/80 hover:text-[#19344A] transition-all cursor-pointer"
+                className="px-3.5 py-1.5 rounded-xl border border-[#19344A]/20 dark:border-[#19344A]/30 hover:border-[#19344A]/40 dark:hover:border-[#19344A]/50 text-xs font-semibold text-[#19344A]/80 dark:text-[#FAF9F6]/70 hover:text-[#19344A] dark:hover:text-[#19344A] transition-all cursor-pointer"
               >
                 {actionLoading ? 'Traitement...' : 'Quitter l\'église'}
               </button>
@@ -292,9 +292,9 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
 
         {/* Join code entry form if clicked */}
         {showJoinCodeInput && (
-          <form onSubmit={handleJoinWithCode} className="p-3.5 rounded-2xl bg-[#FFFFFF] border border-[#67B7E8] space-y-2.5">
+          <form onSubmit={handleJoinWithCode} className="p-3.5 rounded-2xl bg-white dark:bg-[#1D334D] border border-[#67B7E8] dark:border-[#67B7E8]/50 space-y-2.5">
             <div>
-              <label className="block text-[11px] font-bold text-[#19344A] mb-1">
+              <label className="block text-[11px] font-bold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                 Saisissez le code d'adhésion de l'église
               </label>
               <div className="flex gap-2">
@@ -304,12 +304,12 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
                   onChange={(e) => setManualJoinCode(e.target.value)}
                   placeholder="Ex. ALLORA-7K4P2"
                   required
-                  className="flex-1 px-3 py-1.5 rounded-xl border border-[#E8E4D9] bg-[#FAF9F6] text-xs text-[#111315] font-mono tracking-wider focus:outline-none focus:border-[#19344A]"
+                  className="flex-1 px-3 py-1.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-[#FAF9F6] dark:bg-[#19344A] text-xs text-[#111315] dark:text-white font-mono tracking-wider focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8]"
                 />
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-3 py-1.5 rounded-xl bg-[#19344A] text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] disabled:opacity-50 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-[#19344A] dark:bg-blue-600 text-white text-xs font-semibold hover:bg-[#111315] dark:hover:bg-blue-700 disabled:opacity-50 cursor-pointer transition-colors"
                 >
                   Rejoindre
                 </button>
@@ -319,13 +319,13 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
         )}
 
         {/* Tab Selection */}
-        <div className="flex border-b border-[#E8E4D9]/60">
+        <div className="flex border-b border-[#E8E4D9]/60 dark:border-[#67B7E8]/10">
           <button
             onClick={() => setActiveSubTab('about')}
             className={`px-4 py-2 border-b-2 text-xs font-bold transition-all cursor-pointer ${
               activeSubTab === 'about'
-                ? 'border-[#19344A] text-[#19344A]'
-                : 'border-transparent text-[#19344A]/55 hover:text-[#19344A]'
+                ? 'border-[#19344A] dark:border-[#67B7E8] text-[#19344A] dark:text-white'
+                : 'border-transparent text-[#19344A]/55 dark:text-[#FAF9F6]/70 hover:text-[#19344A] dark:hover:text-white'
             }`}
           >
             Présentation
@@ -336,8 +336,8 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
               onClick={() => setActiveSubTab('members')}
               className={`px-4 py-2 border-b-2 text-xs font-bold transition-all cursor-pointer ${
                 activeSubTab === 'members'
-                  ? 'border-[#19344A] text-[#19344A]'
-                  : 'border-transparent text-[#19344A]/55 hover:text-[#19344A]'
+                  ? 'border-[#19344A] dark:border-[#67B7E8] text-[#19344A] dark:text-white'
+                  : 'border-transparent text-[#19344A]/55 dark:text-[#FAF9F6]/70 hover:text-[#19344A] dark:hover:text-white'
               }`}
             >
               Membres ({activeMembers.length})
@@ -346,7 +346,7 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
 
           <button
             onClick={() => setActiveSubTab('future')}
-            className="px-4 py-2 text-xs font-bold text-[#19344A]/35 cursor-not-allowed"
+            className="px-4 py-2 text-xs font-bold text-[#19344A]/35 dark:text-[#FAF9F6]/70 cursor-not-allowed"
             title="Besoins, ressources, collaborations et événements seront déployés prochainement."
           >
             Besoins & Ressources (À venir)
@@ -356,21 +356,21 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
         {/* Tab Contents */}
         <div className="space-y-4">
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#19344A]/30 text-[#19344A] text-xs font-medium">
+            <div className="p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#19344A]/20 border border-[#19344A]/30 dark:border-[#19344A]/30 text-[#19344A] dark:text-[#FAF9F6]/70 text-xs font-medium">
               {errorMsg}
             </div>
           )}
 
           {activeSubTab === 'about' && (
-            <div className="space-y-4 text-xs sm:text-sm text-[#19344A]/80 leading-relaxed">
+            <div className="space-y-4 text-xs sm:text-sm text-[#19344A]/80 dark:text-[#FAF9F6]/70 leading-relaxed">
               {church.description ? (
                 <p>{church.description}</p>
               ) : (
-                <p className="italic text-[#19344A]/50">Aucune description disponible pour cette église.</p>
+                <p className="italic text-[#19344A]/50 dark:text-[#FAF9F6]/70">Aucune description disponible pour cette église.</p>
               )}
 
-              <div className="bg-[#FAF9F6] p-4 rounded-2xl border border-[#E8E4D9]/60 space-y-2.5">
-                <h4 className="text-xs font-bold text-[#19344A] uppercase tracking-wider mb-1">Informations pratiques</h4>
+              <div className="bg-[#FAF9F6] dark:bg-[#1D334D]/50 p-4 rounded-2xl border border-[#E8E4D9]/60 dark:border-[#67B7E8]/20 space-y-2.5">
+                <h4 className="text-xs font-bold text-[#19344A] dark:text-white uppercase tracking-wider mb-1">Informations pratiques</h4>
                 
                 {church.address && (
                   <p><strong>Adresse :</strong> {church.address}</p>
@@ -394,10 +394,10 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
 
               {/* Display code only to church leaders */}
               {isLeader && (
-                <div className="p-3.5 rounded-2xl bg-[#FFFFFF] border border-[#67B7E8] text-center space-y-1">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#19344A]/50">Espace Responsable</span>
-                  <p className="text-xs text-[#19344A]/80 font-medium">Partagez ce code secret pour approuver directement de nouveaux membres :</p>
-                  <p className="text-sm font-bold font-mono text-[#19344A] tracking-wider bg-[#FAF9F6] inline-block px-3 py-1.5 rounded-lg border border-[#E8E4D9] mt-1.5">
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1D334D] border border-[#67B7E8] dark:border-[#67B7E8]/50 text-center space-y-1">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#19344A]/50 dark:text-[#FAF9F6]/70">Espace Responsable</span>
+                  <p className="text-xs text-[#19344A]/80 dark:text-[#FAF9F6]/70 font-medium">Partagez ce code secret pour approuver directement de nouveaux membres :</p>
+                  <p className="text-sm font-bold font-mono text-[#19344A] dark:text-white tracking-wider bg-[#FAF9F6] dark:bg-[#19344A] inline-block px-3 py-1.5 rounded-lg border border-[#E8E4D9] dark:border-[#67B7E8]/20 mt-1.5">
                     {church.joinCode}
                   </p>
                 </div>
@@ -413,27 +413,27 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
                 <div className="space-y-4">
                   {/* Pending requests for Owners/Admins */}
                   {isLeader && pendingRequests.length > 0 && (
-                    <div className="space-y-2.5 bg-[#FAF9F6] p-3.5 rounded-2xl border border-[#19344A]/20">
-                      <h4 className="text-xs font-bold text-[#19344A] uppercase tracking-wider">
+                    <div className="space-y-2.5 bg-[#FAF9F6] dark:bg-[#1D334D]/50 p-3.5 rounded-2xl border border-[#19344A]/20 dark:border-[#67B7E8]/20">
+                      <h4 className="text-xs font-bold text-[#19344A] dark:text-white uppercase tracking-wider">
                         Demandes d'adhésion ({pendingRequests.length})
                       </h4>
-                      <div className="divide-y divide-[#E8E4D9]/60">
+                      <div className="divide-y divide-[#E8E4D9]/60 dark:divide-#253C5A">
                         {pendingRequests.map(req => (
                           <div key={req.membershipId} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0 gap-3">
                             <div>
-                              <p className="text-xs font-bold text-[#19344A]">{req.displayName}</p>
-                              <p className="text-[10px] text-[#19344A]/60">{req.email}</p>
+                              <p className="text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70">{req.displayName}</p>
+                              <p className="text-[10px] text-[#19344A]/60 dark:text-[#FAF9F6]/70">{req.email}</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleRejectMember(req)}
-                                className="px-2.5 py-1 rounded-lg border border-[#19344A]/20 text-[10px] font-bold text-[#19344A]/70 hover:bg-[#FFFFFF] cursor-pointer"
+                                className="px-2.5 py-1 rounded-lg border border-[#19344A]/20 dark:border-slate-600 text-[10px] font-bold text-[#19344A]/70 dark:text-[#FAF9F6]/70 hover:bg-white dark:hover:bg-#1D334D cursor-pointer transition-colors"
                               >
                                 Refuser
                               </button>
                               <button
                                 onClick={() => handleApproveMember(req)}
-                                className="px-3 py-1 rounded-lg bg-[#19344A] text-[#FFFFFF] text-[10px] font-bold hover:bg-[#111315] cursor-pointer shadow-2xs"
+                                className="px-3 py-1 rounded-lg bg-[#19344A] dark:bg-blue-600 text-white text-[10px] font-bold hover:bg-[#111315] dark:hover:bg-blue-700 cursor-pointer shadow-2xs transition-all"
                               >
                                 Accepter
                               </button>
@@ -446,10 +446,10 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
 
                   {/* Active members list */}
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-[#19344A] uppercase tracking-wider">
+                    <h4 className="text-xs font-bold text-[#19344A] dark:text-white uppercase tracking-wider">
                       Membres de l'église
                     </h4>
-                    <div className="divide-y divide-[#E8E4D9]/60 max-h-60 overflow-y-auto pr-1">
+                    <div className="divide-y divide-[#E8E4D9]/60 dark:divide-#253C5A max-h-60 overflow-y-auto pr-1">
                       {activeMembers.map(member => {
                         const isMemberOwner = member.role === 'OWNER';
                         const isSelf = member.userId === user?.uid;
@@ -457,10 +457,10 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
                         return (
                           <div key={member.membershipId} className="flex items-center justify-between py-2.5">
                             <div>
-                              <p className="text-xs font-bold text-[#19344A]">
-                                {member.displayName} {isSelf && <span className="text-[10px] font-normal text-[#19344A]/60">(Vous)</span>}
+                              <p className="text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70">
+                                {member.displayName} {isSelf && <span className="text-[10px] font-normal text-[#19344A]/60 dark:text-[#FAF9F6]/70">(Vous)</span>}
                               </p>
-                              <p className="text-[10px] text-[#19344A]/60">
+                              <p className="text-[10px] text-[#19344A]/60 dark:text-[#FAF9F6]/70">
                                 {isMemberOwner ? 'Propriétaire' : member.role === 'ADMIN' ? 'Administrateur' : 'Membre'} • Arrivé le {new Date(member.joinedAt).toLocaleDateString()}
                               </p>
                             </div>
@@ -470,14 +470,14 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
                               <div className="flex items-center gap-1.5">
                                 <button
                                   onClick={() => handleToggleAdminRole(member)}
-                                  className="px-2 py-1 rounded-lg border border-[#E8E4D9] hover:bg-[#FAF9F6] text-[10px] font-bold text-[#19344A]"
+                                  className="px-2 py-1 rounded-lg border border-[#E8E4D9] dark:border-[#67B7E8]/20 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D text-[10px] font-bold text-[#19344A] dark:text-[#FAF9F6]/70 transition-colors"
                                   title={member.role === 'ADMIN' ? 'Retirer les droits administrateur' : 'Nommer administrateur'}
                                 >
                                   {member.role === 'ADMIN' ? 'Rétrograder' : 'Promouvoir'}
                                 </button>
                                 <button
                                   onClick={() => handleRemoveMember(member)}
-                                  className="p-1.5 rounded-lg hover:bg-[#FAF9F6] text-[#19344A]/60 hover:text-[#111315]"
+                                  className="p-1.5 rounded-lg hover:bg-[#FAF9F6] dark:hover:bg-#1D334D text-[#19344A]/60 dark:text-[#FAF9F6]/70 hover:text-[#111315] dark:hover:text-white transition-colors"
                                   title="Retirer de l'église"
                                 >
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -499,13 +499,13 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
 
           {activeSubTab === 'future' && (
             <div className="p-6 text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-[#FAF9F6] border border-[#E8E4D9] flex items-center justify-center mx-auto text-[#19344A]/40">
+              <div className="w-12 h-12 rounded-full bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 flex items-center justify-center mx-auto text-[#19344A]/40 dark:text-[#FAF9F6]/70">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 7.65l.77.78L12 20.67l7.65-7.66.77-.78a5.4 5.4 0 0 0 0-7.65z" />
                 </svg>
               </div>
-              <h4 className="text-xs font-bold text-[#19344A]">Besoins et Ressources d'Église</h4>
-              <p className="text-[11px] text-[#19344A]/60 max-w-sm mx-auto leading-relaxed">
+              <h4 className="text-xs font-bold text-[#19344A] dark:text-white">Besoins et Ressources d'Église</h4>
+              <p className="text-[11px] text-[#19344A]/60 dark:text-[#FAF9F6]/70 max-w-sm mx-auto leading-relaxed">
                 Cette section permettra d'associer directement des besoins matériels, des partages de locaux ou des appels de service à la communauté locale.
               </p>
             </div>

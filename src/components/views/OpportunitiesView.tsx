@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { Opportunity, OpportunityType, UserProfile, ChurchMember } from '../../types';
 import { fetchOpportunities, fetchOpportunitiesPaginated, fetchProfessionalProfiles } from '../../firebase/services/dataService';
 import { OpportunityCard } from '../opportunities/OpportunityCard';
@@ -7,7 +8,7 @@ import { CreateOpportunityModal } from '../opportunities/CreateOpportunityModal'
 import { ProfessionalProfileModal } from '../opportunities/ProfessionalProfileModal';
 import { 
   Briefcase, Search, Plus, UserCheck, HeartHandshake, Filter, Tag, 
-  MapPin, Users, Sparkles, AlertCircle, RefreshCw, Layers 
+  MapPin, Users, Sparkles, AlertCircle, RefreshCw, Layers, ArrowRight 
 } from 'lucide-react';
 
 interface OpportunitiesViewProps {
@@ -17,29 +18,31 @@ interface OpportunitiesViewProps {
   onOpenAuth: () => void;
 }
 
-const CATEGORIES = [
-  'Toutes',
-  'Graphisme & Vidéo',
-  'Musique & Culte',
-  'Tech & Informatique',
-  'Gestion & Comptabilité',
-  'Communication & Rédaction',
-  'Bâtiment & Logistique',
-  'Social & Entraide',
-  'Enseignement & Formation'
-];
-
-const POPULAR_SKILLS = [
-  'Vidéaste', 'Graphiste', 'Comptable', 'Développeur', 'Musicien',
-  'Sonorisation', 'Chauffeur', 'Community Manager', 'Traducteur'
-];
-
 export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
   currentUser,
   userProfile,
   memberships,
   onOpenAuth
 }) => {
+  const { t } = useLanguage();
+
+  const CATEGORIES = [
+    t.opportunities.categories.all,
+    t.opportunities.categories.design,
+    t.opportunities.categories.music,
+    t.opportunities.categories.tech,
+    t.opportunities.categories.accounting,
+    t.opportunities.categories.communication,
+    t.opportunities.categories.building,
+    t.opportunities.categories.social,
+    t.opportunities.categories.education
+  ];
+
+  const POPULAR_SKILLS = [
+    'Vidéaste', 'Graphiste', 'Comptable', 'Développeur', 'Musicien',
+    'Sonorisation', 'Chauffeur', 'Community Manager', 'Traducteur'
+  ];
+
   // Main view mode: 'search_need' (Je recherche) vs 'propose_service' (Je propose) vs 'talents' (Membres & Talents)
   const [activeMainTab, setActiveMainTab] = useState<'search_need' | 'propose_service' | 'talents'>('propose_service');
   
@@ -54,7 +57,7 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Toutes');
+  const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   // Modals
@@ -77,7 +80,7 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
       setTalents(profs);
     } catch (err: any) {
       console.error('Error loading opportunities:', err);
-      setError(err.message || 'Erreur lors du chargement des opportunités.');
+      setError(err.message || t.opportunities.error);
     } finally {
       setLoading(false);
     }
@@ -124,7 +127,7 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
     }
 
     // Category filter
-    if (selectedCategory !== 'Toutes' && opp.category !== selectedCategory) {
+    if (selectedCategory !== CATEGORIES[0] && opp.category !== selectedCategory) {
       return false;
     }
 
@@ -169,119 +172,121 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Top Banner / Hero Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-emerald-900 via-teal-900 to-primary p-6 sm:p-8 text-white shadow-lg">
+      <div className="relative overflow-hidden rounded-3xl bg-[#19344A] p-6 sm:p-8 text-white shadow-lg border border-[#67B7E8]/10">
         <div className="relative z-10 max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-emerald-200 text-xs font-semibold tracking-wide border border-white/10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#67B7E8]/10 backdrop-blur-md text-[#67B7E8] text-xs font-semibold tracking-wide border border-[#67B7E8]/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Coopération & Talents Chrétiens</span>
+            <span>{t.opportunities.badge}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            Opportunités & Compétences
+            {t.opportunities.title}
           </h1>
-          <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed">
-            Mettez vos compétences professionnelles au service des églises et de la communauté, trouvez des collaborateurs chrétiens et répondez aux besoins de talents.
+          <p className="text-xs sm:text-sm text-[#FAF9F6]/80 leading-relaxed">
+            {t.opportunities.subtitle}
           </p>
 
           <div className="pt-2 flex items-center gap-3 flex-wrap">
             <button
               onClick={() => handleOpenCreate('propose')}
-              className="px-4 py-2.5 bg-white text-emerald-950 font-bold text-xs rounded-xl shadow-sm hover:bg-emerald-50 transition-all flex items-center gap-2"
+              className="px-4 py-2.5 bg-[#67B7E8] text-white font-bold text-xs rounded-xl shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
             >
-              <UserCheck className="w-4 h-4 text-emerald-600" />
-              <span>Proposer mes services</span>
+              <UserCheck className="w-4 h-4" />
+              <span>{t.opportunities.proposeBtn}</span>
             </button>
             <button
               onClick={() => handleOpenCreate('search')}
-              className="px-4 py-2.5 bg-white/15 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 transition-all flex items-center gap-2"
+              className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white font-bold text-xs rounded-xl border border-white/20 transition-all flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Rechercher une compétence</span>
+              <span>{t.opportunities.searchBtn}</span>
             </button>
           </div>
         </div>
+        {/* Abstract background element */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#67B7E8]/5 rounded-full -mr-20 -mt-20 blur-3xl" />
       </div>
 
       {/* Main Mode Navigation Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-gray-100 shadow-xs">
-        <div className="flex rounded-xl bg-gray-100 p-1">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-[#19344A] p-2 rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-sm">
+        <div className="flex rounded-xl bg-[#FAF9F6] dark:bg-[#111315]/30 p-1">
           <button
             onClick={() => setActiveMainTab('propose_service')}
             className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
               activeMainTab === 'propose_service'
-                ? 'bg-white text-primary shadow-xs'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-[#19344A] text-[#67B7E8] shadow-sm'
+                : 'text-[#6F7B85] hover:text-[#19344A] dark:hover:text-white'
             }`}
           >
-            <UserCheck className="w-4 h-4 text-emerald-600" />
-            <span>Je propose ({opportunities.filter(o => o.type === 'service' || o.type === 'volunteer').length})</span>
+            <UserCheck className={`w-4 h-4 ${activeMainTab === 'propose_service' ? 'text-[#67B7E8]' : 'text-[#6F7B85]'}`} />
+            <span>{t.opportunities.tabPropose} ({opportunities.filter(o => o.type === 'service' || o.type === 'volunteer').length})</span>
           </button>
 
           <button
             onClick={() => setActiveMainTab('search_need')}
             className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
               activeMainTab === 'search_need'
-                ? 'bg-white text-primary shadow-xs'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-[#19344A] text-[#67B7E8] shadow-sm'
+                : 'text-[#6F7B85] hover:text-[#19344A] dark:hover:text-white'
             }`}
           >
-            <Search className="w-4 h-4 text-amber-600" />
-            <span>Je recherche ({opportunities.filter(o => o.type === 'skill_request' || o.type === 'job').length})</span>
+            <Search className={`w-4 h-4 ${activeMainTab === 'search_need' ? 'text-[#67B7E8]' : 'text-[#6F7B85]'}`} />
+            <span>{t.opportunities.tabSearch} ({opportunities.filter(o => o.type === 'skill_request' || o.type === 'job').length})</span>
           </button>
 
           <button
             onClick={() => setActiveMainTab('talents')}
             className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
               activeMainTab === 'talents'
-                ? 'bg-white text-primary shadow-xs'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-[#19344A] text-[#67B7E8] shadow-sm'
+                : 'text-[#6F7B85] hover:text-[#19344A] dark:hover:text-white'
             }`}
           >
-            <Users className="w-4 h-4 text-primary" />
-            <span>Talents ({talents.length})</span>
+            <Users className={`w-4 h-4 ${activeMainTab === 'talents' ? 'text-[#67B7E8]' : 'text-[#6F7B85]'}`} />
+            <span>{t.opportunities.tabTalents} ({talents.length})</span>
           </button>
         </div>
 
         <button
           onClick={() => handleOpenCreate(activeMainTab === 'search_need' ? 'search' : 'propose')}
-          className="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2"
+          className="px-4 py-2 bg-[#19344A] hover:bg-[#111315] text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          <span>{activeMainTab === 'search_need' ? 'Publier un besoin' : 'Publier une annonce'}</span>
+          <span>{activeMainTab === 'search_need' ? t.opportunities.publishNeed : t.opportunities.publishAnnouncement}</span>
         </button>
       </div>
 
       {/* Search Bar & Quick Skill Chips */}
-      <div className="space-y-3 bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
+      <div className="space-y-4 bg-white dark:bg-[#19344A] p-5 rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-sm">
         <div className="relative">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+          <Search className="w-4 h-4 text-[#6F7B85] absolute left-3.5 top-3.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher par compétence (ex: vidéaste, comptable, développeur, musicien, chauffeur)..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            placeholder={t.opportunities.searchPlaceholder}
+            className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#67B7E8]/10 focus:border-[#67B7E8] bg-[#FAF9F6] dark:bg-[#111315]/30 dark:text-white transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-3 text-xs text-gray-400 hover:text-gray-600 font-bold"
+              className="absolute right-3 top-3.5 text-xs text-[#6F7B85] hover:text-[#19344A] dark:hover:text-white font-bold"
             >
-              Effacer
+              {t.opportunities.clear}
             </button>
           )}
         </div>
 
         {/* Popular skill pills */}
         <div className="flex items-center gap-1.5 flex-wrap text-xs">
-          <span className="text-gray-400 font-semibold text-[11px] mr-1">Suggestions rapides :</span>
+          <span className="text-[#6F7B85] font-semibold text-[11px] mr-1">{t.opportunities.suggestions}</span>
           {POPULAR_SKILLS.map((skill) => (
             <button
               key={skill}
               onClick={() => setSearchQuery(skill === searchQuery ? '' : skill)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
                 searchQuery.toLowerCase() === skill.toLowerCase()
-                  ? 'bg-primary text-white font-bold'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  ? 'bg-[#67B7E8] text-white font-bold shadow-sm'
+                  : 'bg-[#FAF9F6] dark:bg-[#111315]/50 hover:bg-[#E8E4D9] dark:hover:bg-[#111315] text-[#19344A] dark:text-[#FAF9F6]/70 border border-[#E8E4D9] dark:border-transparent'
               }`}
             >
               {skill}
@@ -296,10 +301,10 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                   selectedCategory === cat
-                    ? 'bg-primary text-white shadow-xs'
-                    : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200/60'
+                    ? 'bg-[#67B7E8] text-white shadow-sm scale-105'
+                    : 'bg-[#FAF9F6] dark:bg-[#111315]/30 hover:bg-[#E8E4D9] dark:hover:bg-[#111315] text-[#19344A] dark:text-[#FAF9F6]/70 border border-[#E8E4D9] dark:border-[#67B7E8]/10'
                 }`}
               >
                 {cat}
@@ -313,28 +318,28 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-48 bg-white border border-gray-100 rounded-2xl animate-pulse p-5" />
+            <div key={i} className="h-48 bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 rounded-2xl animate-pulse p-5" />
           ))}
         </div>
       ) : error ? (
-        <div className="p-8 text-center bg-white rounded-2xl border border-red-100 space-y-3">
-          <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
-          <p className="text-sm font-bold text-gray-800">{error}</p>
+        <div className="p-8 text-center bg-white dark:bg-[#19344A] rounded-2xl border border-[#19344A]/10 space-y-3">
+          <AlertCircle className="w-8 h-8 text-[#67B7E8] mx-auto" />
+          <p className="text-sm font-bold text-[#19344A] dark:text-white">{error}</p>
           <button
             onClick={loadData}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors inline-flex items-center gap-2"
+            className="px-4 py-2 bg-[#FAF9F6] dark:bg-[#111315]/50 hover:bg-[#E8E4D9] dark:hover:bg-[#111315] text-[#19344A] dark:text-[#FAF9F6]/70 text-xs font-bold rounded-xl transition-colors inline-flex items-center gap-2"
           >
-            <RefreshCw className="w-3.5 h-3.5" /> Réessayer
+            <RefreshCw className="w-3.5 h-3.5" /> {t.opportunities.retry}
           </button>
         </div>
       ) : activeMainTab === 'talents' ? (
         /* Talents / Member Profiles Grid */
         filteredTalents.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-gray-200 space-y-3">
-            <Users className="w-10 h-10 text-gray-300 mx-auto" />
-            <h3 className="text-base font-bold text-gray-800">Aucun profil de talent trouvé</h3>
-            <p className="text-xs text-gray-500 max-w-md mx-auto">
-              Complétez votre profil en indiquant vos compétences et les services que vous proposez pour apparaître ici !
+          <div className="p-12 text-center bg-white dark:bg-[#19344A] rounded-3xl border border-dashed border-[#E8E4D9] dark:border-[#67B7E8]/10 space-y-3">
+            <Users className="w-10 h-10 text-[#6F7B85] mx-auto" />
+            <h3 className="text-base font-bold text-[#19344A] dark:text-white">{t.opportunities.noTalentsTitle}</h3>
+            <p className="text-xs text-[#6F7B85] max-w-md mx-auto">
+              {t.opportunities.noTalentsSubtitle}
             </p>
           </div>
         ) : (
@@ -343,11 +348,11 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
               <div
                 key={talent.userId}
                 onClick={() => setSelectedProfile(talent)}
-                className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+                className="bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-base overflow-hidden shrink-0 border border-primary/20">
+                    <div className="w-12 h-12 rounded-full bg-[#FAF9F6] dark:bg-[#111315]/30 text-[#67B7E8] flex items-center justify-center font-bold text-base overflow-hidden shrink-0 border border-[#E8E4D9] dark:border-[#67B7E8]/20">
                       {talent.photoUrl ? (
                         <img src={talent.photoUrl} alt={talent.displayName} className="w-full h-full object-cover" />
                       ) : (
@@ -355,16 +360,16 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-bold text-gray-900 truncate group-hover:text-primary transition-colors">
+                      <h3 className="text-sm font-bold text-[#111315] dark:text-white truncate group-hover:text-[#67B7E8] transition-colors">
                         {talent.displayName}
                       </h3>
                       {talent.professionalTitle && (
-                        <p className="text-xs font-semibold text-emerald-700 truncate">
+                        <p className="text-xs font-semibold text-[#67B7E8] truncate">
                           {talent.professionalTitle}
                         </p>
                       )}
                       {talent.location && (
-                        <p className="text-[11px] text-gray-400 flex items-center gap-1 truncate mt-0.5">
+                        <p className="text-[11px] text-[#6F7B85] flex items-center gap-1 truncate mt-0.5">
                           <MapPin className="w-3 h-3" /> {talent.location}
                         </p>
                       )}
@@ -372,7 +377,7 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
                   </div>
 
                   {talent.bio && (
-                    <p className="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">
+                    <p className="text-xs text-[#6F7B85] line-clamp-2 mb-3 leading-relaxed">
                       {talent.bio}
                     </p>
                   )}
@@ -383,13 +388,13 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
                       {talent.skills.slice(0, 4).map((skill, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[10px] font-medium"
+                          className="px-2 py-0.5 rounded-md bg-[#FAF9F6] dark:bg-[#111315]/50 text-[#19344A] dark:text-[#FAF9F6]/70 text-[10px] font-medium border border-[#E8E4D9] dark:border-transparent"
                         >
                           {skill}
                         </span>
                       ))}
                       {talent.skills.length > 4 && (
-                        <span className="text-[10px] text-gray-400 font-medium self-center">
+                        <span className="text-[10px] text-[#6F7B85] font-medium self-center">
                           +{talent.skills.length - 4}
                         </span>
                       )}
@@ -397,9 +402,9 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-gray-50 flex items-center justify-between text-xs font-bold text-primary">
-                  <span>Voir le profil & contacter</span>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                <div className="pt-3 border-t border-[#E8E4D9] dark:border-[#67B7E8]/10 flex items-center justify-between text-xs font-bold text-[#67B7E8]">
+                  <span>{t.opportunities.viewProfile}</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             ))}
@@ -408,22 +413,22 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
       ) : (
         /* Opportunities List Grid */
         filteredOpportunities.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-gray-200 space-y-3">
-            <Briefcase className="w-10 h-10 text-gray-300 mx-auto" />
-            <h3 className="text-base font-bold text-gray-800">
+          <div className="p-12 text-center bg-white dark:bg-[#19344A] rounded-3xl border border-dashed border-[#E8E4D9] dark:border-[#67B7E8]/10 space-y-3">
+            <Briefcase className="w-10 h-10 text-[#6F7B85] mx-auto" />
+            <h3 className="text-base font-bold text-[#111315] dark:text-white">
               {activeMainTab === 'propose_service'
-                ? 'Aucun service proposé pour le moment'
-                : 'Aucune recherche de compétence active'}
+                ? t.opportunities.noOfferTitle
+                : t.opportunities.noSearchTitle}
             </h3>
-            <p className="text-xs text-gray-500 max-w-md mx-auto">
-              Soyez le premier à publier une annonce dans cette catégorie pour connecter la communauté !
+            <p className="text-xs text-[#6F7B85] max-w-md mx-auto">
+              {t.opportunities.noAnnouncementSubtitle}
             </p>
             <button
               onClick={() => handleOpenCreate(activeMainTab === 'search_need' ? 'search' : 'propose')}
-              className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl shadow-xs transition-colors inline-flex items-center gap-2 mt-2"
+              className="px-5 py-2.5 bg-[#67B7E8] text-white text-xs font-bold rounded-xl shadow-sm hover:opacity-90 transition-colors inline-flex items-center gap-2 mt-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Publier la première annonce</span>
+              <span>{t.opportunities.publishFirst}</span>
             </button>
           </div>
         ) : (
@@ -441,17 +446,17 @@ export const OpportunitiesView: React.FC<OpportunitiesViewProps> = ({
 
             {/* Pagination Load More */}
             {hasMore && !loading && (
-              <div className="flex justify-center pt-4 pb-6">
+              <div className="flex justify-center pt-6 pb-8">
                 <button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
-                  className="px-6 py-2.5 bg-white border border-gray-200 hover:border-primary text-gray-800 text-xs font-bold rounded-2xl transition-all shadow-xs disabled:opacity-50 inline-flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-3 bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/20 hover:border-[#67B7E8] text-[#19344A] dark:text-white text-xs font-bold rounded-2xl transition-all shadow-sm disabled:opacity-50 inline-flex items-center gap-2 cursor-pointer"
                 >
                   {loadingMore ? (
-                    <span>Chargement...</span>
+                    <span>{t.opportunities.loadingMore}</span>
                   ) : (
                     <>
-                      <span>Afficher plus d'annonces</span>
+                      <span>{t.opportunities.loadMore}</span>
                       <RefreshCw className="w-3.5 h-3.5" />
                     </>
                   )}

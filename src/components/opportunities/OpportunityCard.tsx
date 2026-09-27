@@ -18,32 +18,32 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
       case 'service':
         return {
           label: 'Service proposé',
-          bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-          icon: <UserCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+          bg: 'bg-[#67B7E8]/10 text-[#67B7E8] border-[#67B7E8]/20',
+          icon: <UserCheck className="w-3.5 h-3.5 mr-1 text-[#67B7E8]" />
         };
       case 'job':
         return {
           label: 'Emploi / Mission',
-          bg: 'bg-blue-50 text-blue-700 border-blue-200',
-          icon: <Briefcase className="w-3.5 h-3.5 mr-1 text-blue-600" />
+          bg: 'bg-[#19344A]/10 text-[#19344A] dark:text-white border-[#19344A]/20 dark:border-white/20',
+          icon: <Briefcase className="w-3.5 h-3.5 mr-1 text-[#19344A] dark:text-white" />
         };
       case 'volunteer':
         return {
           label: 'Bénévolat',
-          bg: 'bg-purple-50 text-purple-700 border-purple-200',
-          icon: <HeartHandshake className="w-3.5 h-3.5 mr-1 text-purple-600" />
+          bg: 'bg-[#67B7E8]/10 text-[#67B7E8] border-[#67B7E8]/20',
+          icon: <HeartHandshake className="w-3.5 h-3.5 mr-1 text-[#67B7E8]" />
         };
       case 'skill_request':
         return {
           label: 'Recherche de compétence',
-          bg: 'bg-amber-50 text-amber-700 border-amber-200',
-          icon: <Search className="w-3.5 h-3.5 mr-1 text-amber-600" />
+          bg: 'bg-[#FAF9F6] text-[#19344A] dark:text-white border-[#E8E4D9] dark:border-white/10',
+          icon: <Search className="w-3.5 h-3.5 mr-1 text-[#67B7E8]" />
         };
       default:
         return {
           label: 'Opportunité',
-          bg: 'bg-gray-50 text-gray-700 border-gray-200',
-          icon: <Briefcase className="w-3.5 h-3.5 mr-1 text-gray-600" />
+          bg: 'bg-[#FAF9F6] text-[#111315] dark:text-white border-[#E8E4D9] dark:border-white/10',
+          icon: <Briefcase className="w-3.5 h-3.5 mr-1 text-[#6F7B85]" />
         };
     }
   };
@@ -51,13 +51,25 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
   const getStatusBadge = (status: Opportunity['status']) => {
     switch (status) {
       case 'open':
-        return { label: 'Ouverte', bg: 'bg-green-100 text-green-800' };
+        return { 
+          label: 'Ouverte', 
+          bg: 'bg-[#EAF6FD] text-[#67B7E8] border-[#67B7E8]/20' 
+        };
       case 'closed':
-        return { label: 'Clôturée', bg: 'bg-gray-100 text-gray-700' };
+        return { 
+          label: 'Clôturée', 
+          bg: 'bg-[#FAF9F6] text-[#6F7B85] border-[#E8E4D9]' 
+        };
       case 'filled':
-        return { label: 'Pourvue', bg: 'bg-indigo-100 text-indigo-800' };
+        return { 
+          label: 'Pourvue', 
+          bg: 'bg-[#EAF7F0] text-[#22A06B] border-[#22A06B]/20' 
+        };
       case 'cancelled':
-        return { label: 'Annulée', bg: 'bg-red-100 text-red-700' };
+        return { 
+          label: 'Annulée', 
+          bg: 'bg-[#FDECEE] text-[#DC3545] border-[#DC3545]/20' 
+        };
     }
   };
 
@@ -67,49 +79,49 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer relative flex flex-col justify-between group"
+      className="bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer relative flex flex-col justify-between group"
     >
       <div>
         {/* Top Badges */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${typeConfig.bg}`}>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${typeConfig.bg}`}>
             {typeConfig.icon}
             {typeConfig.label}
           </span>
           <div className="flex items-center gap-1.5">
             {isOwner && (
-              <span className="bg-primary/10 text-primary text-[11px] font-semibold px-2 py-0.5 rounded-full">
-                Votre annonce
+              <span className="bg-[#67B7E8] text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
+                Mien
               </span>
             )}
-            <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${statusConfig.bg}`}>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusConfig.bg}`}>
               {statusConfig.label}
             </span>
           </div>
         </div>
 
         {/* Title & Description */}
-        <h3 className="text-base font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1 mb-1.5">
+        <h3 className="text-base font-black text-[#111315] dark:text-white group-hover:text-[#67B7E8] transition-colors line-clamp-1 mb-1.5">
           {opportunity.title}
         </h3>
-        <p className="text-gray-600 text-xs line-clamp-2 leading-relaxed mb-4">
+        <p className="text-[#6F7B85] dark:text-[#FAF9F6]/80 text-xs line-clamp-2 leading-relaxed mb-4">
           {opportunity.description}
         </p>
 
         {/* Skills Tag Pills */}
         {opportunity.skills && opportunity.skills.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
+          <div className="flex flex-wrap gap-1.5 mb-5">
             {opportunity.skills.slice(0, 4).map((skill, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[11px] font-medium"
+                className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#FAF9F6] dark:bg-[#111315]/50 text-[#19344A] dark:text-[#FAF9F6]/70 text-[10px] font-bold border border-[#E8E4D9] dark:border-[#67B7E8]/10"
               >
-                <Tag className="w-2.5 h-2.5 mr-1 opacity-50" />
+                <Tag className="w-2.5 h-2.5 mr-1 text-[#67B7E8]" />
                 {skill}
               </span>
             ))}
             {opportunity.skills.length > 4 && (
-              <span className="text-[11px] text-gray-400 font-medium self-center">
+              <span className="text-[10px] text-[#6F7B85] font-bold self-center">
                 +{opportunity.skills.length - 4}
               </span>
             )}
@@ -118,42 +130,42 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-500">
-        <div className="flex flex-col gap-1 min-w-0">
+      <div className="pt-4 border-t border-[#E8E4D9] dark:border-[#67B7E8]/10 flex items-center justify-between text-xs">
+        <div className="flex flex-col gap-1.5 min-w-0">
           <div className="flex items-center gap-1.5 truncate">
             {opportunity.churchName ? (
               <>
-                <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span className="truncate font-medium text-gray-800">{opportunity.churchName}</span>
+                <Building2 className="w-3.5 h-3.5 text-[#67B7E8] shrink-0" />
+                <span className="truncate font-black text-[#19344A] dark:text-white">{opportunity.churchName}</span>
               </>
             ) : (
               <>
-                <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                <span className="truncate font-medium text-gray-800">
+                <User className="w-3.5 h-3.5 text-[#6F7B85] shrink-0" />
+                <span className="truncate font-bold text-[#19344A] dark:text-white/90">
                   {opportunity.authorName || 'Membre'} {opportunity.authorTitle ? `• ${opportunity.authorTitle}` : ''}
                 </span>
               </>
             )}
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-gray-400">
+          <div className="flex items-center gap-3 text-[10px] text-[#6F7B85] font-semibold">
             {opportunity.location && (
               <span className="flex items-center gap-1 truncate">
-                <MapPin className="w-3 h-3" />
+                <MapPin className="w-3 h-3 text-[#67B7E8]" />
                 {opportunity.location}
               </span>
             )}
             {opportunity.availability && (
               <span className="flex items-center gap-1 truncate">
-                <Calendar className="w-3 h-3" />
+                <Calendar className="w-3 h-3 text-[#67B7E8]" />
                 {opportunity.availability}
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center text-primary font-semibold text-xs shrink-0 pl-2">
+        <div className="flex items-center text-[#67B7E8] font-black uppercase tracking-widest text-[10px] shrink-0 pl-2">
           <span>Détails</span>
-          <ChevronRight className="w-4 h-4 ml-0.5 group-hover:translate-x-0.5 transition-transform" />
+          <ChevronRight className="w-3.5 h-3.5 ml-0.5 group-hover:translate-x-0.5 transition-transform" />
         </div>
       </div>
     </div>

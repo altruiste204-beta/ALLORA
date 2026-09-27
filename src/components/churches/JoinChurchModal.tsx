@@ -96,7 +96,7 @@ export const JoinChurchModal: React.FC<JoinChurchModalProps> = ({
     >
       <div className="space-y-4">
         {errorMsg && (
-          <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#19344A]/30 text-[#19344A] text-xs font-medium flex items-start gap-2">
+          <div className="p-3 rounded-xl bg-[#FAF9F6] dark:bg-[#19344A]/20 border border-[#19344A]/30 dark:border-[#19344A]/30 text-[#19344A] dark:text-[#FAF9F6]/70 text-xs font-medium flex items-start gap-2">
             <svg className="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
@@ -109,7 +109,7 @@ export const JoinChurchModal: React.FC<JoinChurchModalProps> = ({
         {!matchedChurch ? (
           <form onSubmit={handleVerifyCode} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[#19344A] mb-1">
+              <label className="block text-xs font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 mb-1">
                 Code de rejoindre l'église
               </label>
               <input
@@ -118,25 +118,25 @@ export const JoinChurchModal: React.FC<JoinChurchModalProps> = ({
                 onChange={(e) => setJoinCode(e.target.value)}
                 placeholder="Ex. ALLORA-7K4P2"
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] bg-[#FAF9F6] text-sm text-[#111315] font-mono tracking-wider focus:outline-none focus:border-[#19344A] transition-all text-center uppercase"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-[#FAF9F6] dark:bg-[#19344A] text-sm text-[#111315] dark:text-white font-mono tracking-wider focus:outline-none focus:border-[#19344A] dark:focus:border-[#67B7E8] transition-all text-center uppercase"
               />
-              <p className="text-[10px] text-[#19344A]/60 mt-1.5 leading-snug">
+              <p className="text-[10px] text-[#19344A]/60 dark:text-[#FAF9F6]/70 mt-1.5 leading-snug">
                 Le code d'adhésion est fourni oralement ou par message par les responsables de votre église locale.
               </p>
             </div>
 
-            <div className="pt-2 border-t border-[#E8E4D9] flex justify-end gap-3">
+            <div className="pt-2 border-t border-[#E8E4D9] dark:border-[#67B7E8]/10 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#19344A]/80 hover:bg-[#FAF9F6] cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#19344A]/80 dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D cursor-pointer"
               >
                 Annuler
               </button>
               <button
                 type="submit"
                 disabled={searching}
-                className="px-5 py-2 rounded-xl bg-[#19344A] text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] disabled:opacity-50 cursor-pointer shadow-xs"
+                className="px-5 py-2 rounded-xl bg-[#19344A] dark:bg-blue-600 text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] dark:hover:bg-blue-700 disabled:opacity-50 cursor-pointer shadow-xs"
               >
                 {searching ? 'Vérification...' : 'Vérifier le code'}
               </button>
@@ -145,24 +145,24 @@ export const JoinChurchModal: React.FC<JoinChurchModalProps> = ({
         ) : (
           <div className="space-y-4">
             {/* Matching Church Sheet Card */}
-            <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-[#67B7E8]/60 text-center">
+            <div className="p-4 rounded-2xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#67B7E8]/60 text-center">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#67B7E8]">Église trouvée !</span>
-              <h3 className="text-base font-bold text-[#19344A] mt-1">{matchedChurch.name}</h3>
-              <p className="text-xs text-[#19344A]/70 mt-0.5">{matchedChurch.city}, {matchedChurch.country}</p>
+              <h3 className="text-base font-bold text-[#19344A] dark:text-white mt-1">{matchedChurch.name}</h3>
+              <p className="text-xs text-[#19344A]/70 dark:text-[#FAF9F6]/70 mt-0.5">{matchedChurch.city}, {matchedChurch.country}</p>
               {matchedChurch.denomination && (
-                <p className="text-[11px] text-[#19344A]/60 mt-1 italic">Dénomination : {matchedChurch.denomination}</p>
+                <p className="text-[11px] text-[#19344A]/60 dark:text-[#FAF9F6]/70 mt-1 italic">Dénomination : {matchedChurch.denomination}</p>
               )}
             </div>
 
-            <p className="text-xs text-[#19344A]/80 text-center leading-relaxed px-2">
+            <p className="text-xs text-[#19344A]/80 dark:text-[#FAF9F6]/70 text-center leading-relaxed px-2">
               En confirmant, vous rejoindrez directement cette église en tant que membre approuvé et actif.
             </p>
 
-            <div className="pt-2 border-t border-[#E8E4D9] flex justify-end gap-3">
+            <div className="pt-2 border-t border-[#E8E4D9] dark:border-[#67B7E8]/10 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setMatchedChurch(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#19344A]/80 hover:bg-[#FAF9F6] cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#19344A]/80 dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D cursor-pointer"
               >
                 Retour
               </button>
@@ -170,7 +170,7 @@ export const JoinChurchModal: React.FC<JoinChurchModalProps> = ({
                 type="button"
                 onClick={handleConfirmJoin}
                 disabled={loading}
-                className="px-5 py-2 rounded-xl bg-[#19344A] text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] disabled:opacity-50 cursor-pointer shadow-xs"
+                className="px-5 py-2 rounded-xl bg-[#19344A] dark:bg-blue-600 text-[#FFFFFF] text-xs font-semibold hover:bg-[#111315] dark:hover:bg-blue-700 disabled:opacity-50 cursor-pointer shadow-xs"
               >
                 {loading ? 'Adhésion en cours...' : 'Rejoindre l\'église'}
               </button>

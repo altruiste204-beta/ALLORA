@@ -46,30 +46,30 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* Modal Dialog Card */}
       <div
-        className={`relative w-full ${maxWidth} bg-[#FFFFFF] rounded-2xl border border-[#E8E4D9] shadow-xl p-6 sm:p-7 z-10 my-auto transform transition-all max-h-[90vh] flex flex-col`}
+        className={`relative w-full ${maxWidth} bg-white dark:bg-[#19344A] rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-xl p-6 sm:p-7 z-10 my-auto transform transition-all max-h-[90vh] flex flex-col`}
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
-        <div className="flex items-start justify-between pb-4 border-b border-[#E8E4D9]/60 shrink-0">
+        <div className="flex items-start justify-between pb-4 border-b border-[#E8E4D9]/60 dark:border-[#67B7E8]/10 shrink-0">
           <div>
             {title && (
-              <h2 className="text-xl font-bold text-[#19344A] tracking-tight">
+              <h2 className="text-xl font-bold text-[#19344A] dark:text-white tracking-tight">
                 {title}
               </h2>
             )}
             {subtitle && (
-              <p className="text-xs text-[#19344A]/60 mt-1">
+              <p className="text-xs text-[#19344A]/60 dark:text-[#FAF9F6]/70 mt-1">
                 {subtitle}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-[#19344A]/50 hover:text-[#111315] hover:bg-[#FAF9F6] transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-[#67B7E8] hover:bg-[#FAF9F6] dark:hover:bg-[#1D334D] transition-colors cursor-pointer"
             aria-label="Fermer"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>

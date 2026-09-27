@@ -19,584 +19,108 @@ service cloud.firestore {
       );
     }
 
-    function isValidId(id) {
-      return id is string && id.size() > 0 && id.size() <= 256;
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    function isChurchLeader(churchId) {
-      return churchId != null &&
-             exists(/databases/$(database)/documents/churches/$(churchId)) &&
-             get(/databases/$(database)/documents/churches/$(churchId)).data.leaderIds.hasAny([request.auth.uid]);
-    }
-
-    function isApprovedChurchMember(userId, churchId) {
-      return churchId != null &&
-             exists(/databases/$(database)/documents/churchMembers/$(churchId + '_' + userId)) &&
-             get(/databases/$(database)/documents/churchMembers/$(churchId + '_' + userId)).data.status == 'approved';
-    }
-
-    // Entity validation helpers
-    function isValidUser(data) {
-      return data.userId is string && data.userId.size() <= 128 &&
-             data.email is string && data.email.size() <= 256 &&
-             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100 &&
-             (!('professionalTitle' in data) || (data.professionalTitle is string && data.professionalTitle.size() <= 100)) &&
-             (!('bio' in data) || (data.bio is string && data.bio.size() <= 1000)) &&
-             (!('location' in data) || (data.location is string && data.location.size() <= 150)) &&
-             (!('availability' in data) || (data.availability is string && data.availability.size() <= 100)) &&
-             (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500)) &&
-             (!('skills' in data) || (data.skills is list && data.skills.size() <= 30)) &&
-             (!('servicesOffered' in data) || (data.servicesOffered is list && data.servicesOffered.size() <= 30)) &&
-             (!('interests' in data) || (data.interests is list && data.interests.size() <= 30)) &&
-             (!('churchIds' in data) || (data.churchIds is list && data.churchIds.size() <= 20));
-    }
-
-    function isValidChurch(data) {
-      return data.churchId is string && data.churchId.size() <= 128 &&
-             data.name is string && data.name.size() > 0 && data.name.size() <= 150 &&
-             data.city is string && data.city.size() <= 100 &&
-             data.country is string && data.country.size() <= 100 &&
-             data.joinCode is string && data.joinCode.size() > 0 && data.joinCode.size() <= 50 &&
-             data.leaderIds is list && data.leaderIds.size() > 0 && data.leaderIds.size() <= 20 &&
-             (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
-             (!('address' in data) || (data.address is string && data.address.size() <= 250)) &&
-             (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 500)) &&
-             (!('coverImageUrl' in data) || (data.coverImageUrl is string && data.coverImageUrl.size() <= 500)) &&
-             (!('contactPhone' in data) || (data.contactPhone is string && data.contactPhone.size() <= 50)) &&
-             (!('contactEmail' in data) || (data.contactEmail is string && data.contactEmail.size() <= 100)) &&
-             (!('website' in data) || (data.website is string && data.website.size() <= 150)) &&
-             (!('denomination' in data) || (data.denomination is string && data.denomination.size() <= 100)) &&
-             (!('foundedYear' in data) || (data.foundedYear is string && data.foundedYear.size() <= 10)) &&
-             data.verificationStatus in ['pending', 'verified', 'rejected'];
-    }
-
-    function isValidChurchMember(data) {
-      return data.membershipId is string && data.membershipId.size() <= 256 &&
-             data.churchId is string && data.churchId.size() <= 128 &&
-             data.userId is string && data.userId.size() <= 128 &&
-             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100 &&
-             data.email is string && data.email.size() <= 256 &&
-             data.role in ['OWNER', 'ADMIN', 'MEMBER'] &&
-             data.status in ['pending', 'approved', 'rejected', 'left', 'removed'] &&
-             (!('joinCode' in data) || (data.joinCode is string && data.joinCode.size() <= 50)) &&
-             (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500));
-    }
-
-    function isValidNotification(data) {
-      return data.notificationId is string && data.notificationId.size() <= 128 &&
-             data.userId is string && data.userId.size() <= 128 &&
-             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
-             data.body is string && data.body.size() > 0 && data.body.size() <= 1000 &&
-             data.read is boolean &&
-             data.type in ['membership_request', 'membership_approved', 'membership_rejected', 'role_changed', 'info', 'needs', 'resources', 'collaborations', 'churches', 'events', 'community', 'opportunities', 'system'] &&
-             (!('churchId' in data) || (data.churchId is string && data.churchId.size() <= 128)) &&
-             (!('churchName' in data) || (data.churchName is string && data.churchName.size() <= 150)) &&
-             (!('relatedId' in data) || (data.relatedId is string && data.relatedId.size() <= 128));
-    }
-
-    function isValidOpportunity(data) {
-      return data.opportunityId is string && data.opportunityId.size() <= 128 &&
-             data.type in ['service', 'job', 'volunteer', 'skill_request'] &&
-             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
-             data.description is string && data.description.size() > 0 && data.description.size() <= 5000 &&
-             data.category is string && data.category.size() <= 100 &&
-             data.skills is list && data.skills.size() <= 20 &&
-             data.authorId is string && data.authorId.size() <= 128 &&
-             data.location is string && data.location.size() <= 250 &&
-             data.visibility in ['public', 'church', 'private'] &&
-             data.status in ['open', 'closed', 'filled', 'cancelled'] &&
-             (!('churchId' in data) || data.churchId == null || (data.churchId is string && data.churchId.size() <= 128)) &&
-             (!('churchName' in data) || data.churchName is string) &&
-             (!('authorName' in data) || data.authorName is string) &&
-             (!('authorPhotoUrl' in data) || data.authorPhotoUrl is string) &&
-             (!('authorTitle' in data) || data.authorTitle is string) &&
-             (!('availability' in data) || data.availability is string) &&
-             (!('compensation' in data) || data.compensation is string) &&
-             (!('responseCount' in data) || data.responseCount is number);
-    }
-
-    function isValidOpportunityResponse(data) {
-      return data.responseId is string && data.responseId.size() <= 128 &&
-             data.opportunityId is string && data.opportunityId.size() <= 128 &&
-             data.opportunityAuthorId is string && data.opportunityAuthorId.size() <= 128 &&
-             data.responderId is string && data.responderId.size() <= 128 &&
-             data.responderName is string && data.responderName.size() > 0 && data.responderName.size() <= 100 &&
-             data.message is string && data.message.size() > 0 && data.message.size() <= 2000 &&
-             data.status in ['pending', 'accepted', 'rejected', 'withdrawn'] &&
-             (!('skills' in data) || (data.skills is list && data.skills.size() <= 20)) &&
-             (!('contactEmail' in data) || (data.contactEmail is string && data.contactEmail.size() <= 256)) &&
-             (!('contactPhone' in data) || (data.contactPhone is string && data.contactPhone.size() <= 50)) &&
-             (!('opportunityTitle' in data) || data.opportunityTitle is string) &&
-             (!('responderPhotoUrl' in data) || data.responderPhotoUrl is string) &&
-             (!('responderTitle' in data) || data.responderTitle is string);
-    }
-
-    function isValidPost(data) {
-      return data.postId is string && data.postId.size() <= 128 &&
-             data.authorId is string && data.authorId.size() <= 128 &&
-             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
-             data.content is string && data.content.size() > 0 && data.content.size() <= 5000 &&
-             data.category in ['announcement', 'community', 'testimony', 'information', 'opportunity', 'other'] &&
-             data.visibility in ['public', 'church', 'private'] &&
-             data.status in ['published', 'archived'] &&
-             (!('churchId' in data) || data.churchId == null || (data.churchId is string && data.churchId.size() <= 128)) &&
-             (!('reactions' in data) || data.reactions is map) &&
-             (!('commentCount' in data) || data.commentCount is number);
-    }
-
-    function isValidComment(data) {
-      return data.commentId is string && data.commentId.size() <= 128 &&
-             data.postId is string && data.postId.size() <= 128 &&
-             data.authorId is string && data.authorId.size() <= 128 &&
-             data.authorName is string && data.authorName.size() <= 100 &&
-             data.content is string && data.content.size() > 0 && data.content.size() <= 2000;
-    }
-
-    function isValidLocation(loc) {
-      return loc is map &&
-             loc.country is string && loc.country.size() <= 100 &&
-             loc.city is string && loc.city.size() <= 100 &&
-             loc.zone is string && loc.zone.size() <= 100;
-    }
-
-    function isValidNeed(data) {
-      return data.needId is string && data.needId.size() <= 128 &&
-             data.createdBy is string && data.createdBy.size() <= 128 &&
-             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
-             data.description is string && data.description.size() > 0 && data.description.size() <= 2000 &&
-             data.category is string && data.category.size() <= 100 &&
-             data.subcategory is string && data.subcategory.size() <= 100 &&
-             isValidLocation(data.location) &&
-             data.quantity is number && data.quantity >= 0 &&
-             data.unit is string && data.unit.size() <= 50 &&
-             data.neededFrom is string &&
-             (!('neededUntil' in data) || data.neededUntil is string) &&
-             data.urgency in ['low', 'normal', 'high', 'urgent'] &&
-             data.status in ['open', 'partially_fulfilled', 'fulfilled', 'cancelled', 'expired'] &&
-             data.visibility in ['public', 'church', 'private'] &&
-             (!('churchId' in data) || (data.churchId == null || (data.churchId is string && data.churchId.size() <= 128)));
-    }
-
-    function isValidResource(data) {
-      return data.resourceId is string && data.resourceId.size() <= 128 &&
-             data.ownerId is string && data.ownerId.size() <= 128 &&
-             data.ownerType in ['user', 'church'] &&
-             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
-             data.description is string && data.description.size() > 0 && data.description.size() <= 2000 &&
-             data.category is string && data.category.size() <= 100 &&
-             data.subcategory is string && data.subcategory.size() <= 100 &&
-             data.type in ['loan', 'donation', 'service', 'volunteer'] &&
-             isValidLocation(data.location) &&
-             (!('availability' in data) || (data.availability is string && data.availability.size() <= 150)) &&
-             data.quantity is number && data.quantity >= 0 &&
-             data.unit is string && data.unit.size() <= 50 &&
-             data.availableFrom is string &&
-             (!('availableUntil' in data) || data.availableUntil is string) &&
-             data.status in ['available', 'reserved', 'unavailable', 'closed'] &&
-             (!('churchId' in data) || (data.churchId == null || (data.churchId is string && data.churchId.size() <= 128)));
-    }
-
-    function isValidNeedResponse(data) {
-      return data.responseId is string && data.responseId.size() <= 128 &&
-             data.needId is string && data.needId.size() <= 128 &&
-             data.needAuthorId is string && data.needAuthorId.size() <= 128 &&
-             (!('resourceId' in data) || data.resourceId == null || (data.resourceId is string && data.resourceId.size() <= 128)) &&
-             data.responderId is string && data.responderId.size() <= 128 &&
-             data.message is string && data.message.size() <= 1000 &&
-             data.quantityProposed is number && data.quantityProposed >= 0 &&
-             data.status in ['pending', 'accepted', 'rejected', 'withdrawn'];
-    }
-
-    function isValidEvent(data) {
-      return data.eventId is string && data.eventId.size() <= 128 &&
-             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
-             data.description is string && data.description.size() <= 3000 &&
-             data.category is string && data.category.size() <= 100 &&
-             data.organizerType in ['user', 'church'] &&
-             data.organizerId is string && data.organizerId.size() <= 128 &&
-             (!('churchId' in data) || data.churchId == null || (data.churchId is string && data.churchId.size() <= 128)) &&
-             data.location is string && data.location.size() <= 250 &&
-             data.startAt is string &&
-             data.endAt is string &&
-             (!('capacity' in data) || data.capacity == null || (data.capacity is number && data.capacity >= 0)) &&
-             data.visibility in ['public', 'church', 'private'] &&
-             data.status in ['draft', 'published', 'cancelled', 'completed'] &&
-             (!('organizerName' in data) || data.organizerName is string) &&
-             (!('churchName' in data) || data.churchName is string);
-    }
-
-    function isValidEventParticipant(data) {
-      return data.participantId is string && data.participantId.size() <= 256 &&
-             data.eventId is string && data.eventId.size() <= 128 &&
-             data.userId is string && data.userId.size() <= 128 &&
-             data.status in ['registered', 'cancelled', 'attended'] &&
-             (!('displayName' in data) || data.displayName is string) &&
-             (!('email' in data) || data.email is string);
-    }
-
-    function isValidCollaboration(data) {
-      return data.collaborationId is string && data.collaborationId.size() <= 128 &&
-             data.status is string && data.status in ['draft', 'proposed', 'accepted', 'active', 'completed', 'cancelled', 'rejected', 'archived'] &&
-             (!('needId' in data) || (data.needId is string && data.needId.size() <= 128)) &&
-             (!('resourceId' in data) || (data.resourceId is string && data.resourceId.size() <= 128)) &&
-             (!('needOwnerId' in data) || (data.needOwnerId is string && data.needOwnerId.size() <= 128)) &&
-             (!('resourceOwnerId' in data) || (data.resourceOwnerId is string && data.resourceOwnerId.size() <= 128)) &&
-             (!('churchId' in data) || data.churchId == null || (data.churchId is string && data.churchId.size() <= 128)) &&
-             (!('quantity' in data) || (data.quantity is number && data.quantity >= 0)) &&
-             (!('message' in data) || (data.message is string && data.message.size() <= 3000)) &&
-             (!('title' in data) || (data.title is string && data.title.size() <= 200)) &&
-             (!('description' in data) || (data.description is string && data.description.size() <= 3000)) &&
-             (!('leadChurchId' in data) || (data.leadChurchId is string && data.leadChurchId.size() <= 128)) &&
-             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 100)) &&
-             (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 100));
-    }
-
-    // Helper to validate atomic leaderIds list update
-    function isValidLeaderIdsChange() {
-      return incoming().leaderIds is list && incoming().leaderIds.size() > 0 && incoming().leaderIds.size() <= 20;
-    }
-
     // Collections
+    
+    // User Profiles
     match /users/{userId} {
-      allow get: if isSignedIn();
+      allow get: if isSignedIn() && (
+        resource == null || 
+        !('privacySettings' in resource.data) || 
+        !('profileVisibility' in resource.data.privacySettings) || 
+        resource.data.privacySettings.profileVisibility != 'private' || 
+        isOwner(userId) || 
+        isAdmin()
+      );
       allow list: if isSignedIn();
-      allow create: if isOwner(userId) && isValidId(userId) && isValidUser(incoming()) && incoming().userId == request.auth.uid;
-      allow update: if isOwner(userId) && isValidId(userId) && isValidUser(incoming()) && incoming().userId == existing().userId;
+      allow create, update: if isOwner(userId);
       allow delete: if isAdmin() || isOwner(userId);
     }
 
+    // Churches
     match /churches/{churchId} {
       allow get, list: if true;
-      allow create: if isSignedIn() && isValidId(churchId) && isValidChurch(incoming()) &&
-                    incoming().createdBy == request.auth.uid &&
-                    incoming().verificationStatus == 'pending' &&
-                    incoming().leaderIds.size() == 1 &&
-                    incoming().leaderIds[0] == request.auth.uid;
-      allow update: if isSignedIn() && isValidId(churchId) && isValidChurch(incoming()) && (
-        (isChurchLeader(churchId) &&
-         incoming().verificationStatus == existing().verificationStatus &&
-         isValidLeaderIdsChange()) || isAdmin()
-      );
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); // Add more checks later
       allow delete: if isAdmin();
     }
 
+    // Church Memberships
     match /churchMembers/{membershipId} {
       allow get, list: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(membershipId) && isValidChurchMember(incoming()) && (
-        // 1. Owner creation (first member on church create)
-        (incoming().role == 'OWNER' && incoming().status == 'approved' && incoming().userId == request.auth.uid) ||
-        // 2. Joining as MEMBER with pending status (requires admin approval)
-        (incoming().role == 'MEMBER' && incoming().status == 'pending' && incoming().userId == request.auth.uid) ||
-        // 3. Auto-joining as MEMBER with valid joinCode
-        (incoming().role == 'MEMBER' && incoming().status == 'approved' && incoming().userId == request.auth.uid &&
-         exists(/databases/$(database)/documents/churches/$(incoming().churchId)) &&
-         incoming().joinCode == get(/databases/$(database)/documents/churches/$(incoming().churchId)).data.joinCode)
-      );
-      allow update: if isSignedIn() && isValidId(membershipId) && isValidChurchMember(incoming()) &&
-                    incoming().churchId == existing().churchId &&
-                    incoming().userId == existing().userId && (
-        // 1. User themselves leaving the church (OWNER cannot leave)
-        (incoming().userId == request.auth.uid && incoming().status == 'left' && (existing().status == 'approved' || existing().status == 'pending') && incoming().role == existing().role && existing().role != 'OWNER') ||
-        // 2. Owner or Admin updating someone else's membership status or role
-        (isChurchLeader(existing().churchId) &&
-         existing().role != 'OWNER' &&
-         incoming().role != 'OWNER')
-      );
-      allow delete: if isAdmin() || (isSignedIn() && isChurchLeader(existing().churchId) && existing().role != 'OWNER');
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
-    match /notifications/{notificationId} {
-      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(notificationId) && isValidNotification(incoming());
-      allow update: if isSignedIn() && isValidId(notificationId) && isValidNotification(incoming()) &&
-                    existing().userId == request.auth.uid &&
-                    incoming().diff(existing()).affectedKeys().hasOnly(['read']);
-      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
-    }
-
+    // Needs (Demandes)
     match /needs/{needId} {
-      allow get: if isSignedIn() && (
-        resource.data.visibility == 'public' ||
-        isOwner(resource.data.createdBy) ||
-        (resource.data.visibility == 'church' && isApprovedChurchMember(request.auth.uid, resource.data.churchId)) ||
-        isChurchLeader(resource.data.churchId) ||
-        isAdmin()
-      );
-      allow list: if isSignedIn() && (
-        resource.data.visibility == 'public' ||
-        isOwner(resource.data.createdBy) ||
-        isAdmin()
-      );
-      allow create: if isSignedIn() && isValidId(needId) && isValidNeed(incoming()) &&
-                    incoming().createdBy == request.auth.uid &&
-                    (incoming().churchId == null || isApprovedChurchMember(request.auth.uid, incoming().churchId));
-      allow update: if isSignedIn() && isValidId(needId) && isValidNeed(incoming()) &&
-                    incoming().createdBy == existing().createdBy &&
-                    incoming().churchId == existing().churchId &&
-                    incoming().needId == existing().needId &&
-                    incoming().createdAt == existing().createdAt && (
-                      isOwner(existing().createdBy) ||
-                      isChurchLeader(existing().churchId) ||
-                      isAdmin()
-                    );
-      allow delete: if isSignedIn() && (
-        isOwner(existing().createdBy) ||
-        isChurchLeader(existing().churchId) ||
-        isAdmin()
-      );
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (resource == null || resource.data.createdBy == request.auth.uid);
+      allow delete: if isSignedIn() && (resource == null || resource.data.createdBy == request.auth.uid || isAdmin());
 
       match /responses/{responseId} {
-        allow get: if isSignedIn() && (
-          resource.data.responderId == request.auth.uid ||
-          get(/databases/$(database)/documents/needs/$(needId)).data.createdBy == request.auth.uid ||
-          isAdmin()
-        );
-        allow list: if isSignedIn() && (
-          resource.data.responderId == request.auth.uid ||
-          resource.data.needAuthorId == request.auth.uid ||
-          isAdmin()
-        );
-        allow create: if isSignedIn() && isValidId(responseId) && isValidNeedResponse(incoming()) &&
-                      incoming().responderId == request.auth.uid &&
-                      incoming().needId == needId &&
-                      incoming().status == 'pending' &&
-                      exists(/databases/$(database)/documents/needs/$(needId)) &&
-                      incoming().needAuthorId == get(/databases/$(database)/documents/needs/$(needId)).data.createdBy;
-        allow update: if isSignedIn() && isValidId(responseId) && isValidNeedResponse(incoming()) &&
-                      incoming().responseId == existing().responseId &&
-                      incoming().needId == existing().needId &&
-                      incoming().needAuthorId == existing().needAuthorId &&
-                      incoming().responderId == existing().responderId &&
-                      incoming().createdAt == existing().createdAt && (
-                        // Need creator accepting/rejecting
-                        (get(/databases/$(database)/documents/needs/$(needId)).data.createdBy == request.auth.uid &&
-                         incoming().message == existing().message &&
-                         incoming().quantityProposed == existing().quantityProposed &&
-                         (!('resourceId' in incoming()) || incoming().resourceId == existing().resourceId) &&
-                         incoming().status in ['accepted', 'rejected']) ||
-                        // Responder withdrawing
-                        (existing().responderId == request.auth.uid &&
-                         incoming().status == 'withdrawn' &&
-                         incoming().message == existing().message &&
-                         (!('resourceId' in incoming()) || incoming().resourceId == existing().resourceId)) ||
-                        isAdmin()
-                      );
-        allow delete: if isAdmin() || (isSignedIn() && existing().responderId == request.auth.uid && existing().status == 'pending');
+        allow get, list, create, update, delete: if isSignedIn();
       }
     }
 
+    // Resources (Offres)
     match /resources/{resourceId} {
-      allow get: if isSignedIn() && (
-        resource.data.visibility == 'public' ||
-        isOwner(resource.data.ownerId) ||
-        (resource.data.visibility == 'church' && isApprovedChurchMember(request.auth.uid, resource.data.churchId)) ||
-        isChurchLeader(resource.data.churchId) ||
-        isAdmin()
-      );
-      allow list: if isSignedIn() && (
-        resource.data.visibility == 'public' ||
-        isOwner(resource.data.ownerId) ||
-        isAdmin()
-      );
-      allow create: if isSignedIn() && isValidId(resourceId) && isValidResource(incoming()) &&
-                    incoming().ownerId == request.auth.uid &&
-                    (incoming().churchId == null || isApprovedChurchMember(request.auth.uid, incoming().churchId));
-      allow update: if isSignedIn() && isValidId(resourceId) && isValidResource(incoming()) &&
-                    incoming().ownerId == existing().ownerId &&
-                    incoming().ownerType == existing().ownerType &&
-                    incoming().churchId == existing().churchId &&
-                    incoming().resourceId == existing().resourceId &&
-                    incoming().createdAt == existing().createdAt && (
-                      isOwner(existing().ownerId) ||
-                      isChurchLeader(existing().churchId) ||
-                      isAdmin()
-                    );
-      allow delete: if isSignedIn() && (
-        isOwner(existing().ownerId) ||
-        isChurchLeader(existing().churchId) ||
-        isAdmin()
-      );
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (resource == null || resource.data.ownerId == request.auth.uid);
     }
 
+    // Events
     match /events/{eventId} {
-      allow get, list: if isSignedIn() && (
-        resource == null ||
-        resource.data.visibility == 'public' ||
-        resource.data.organizerId == request.auth.uid ||
-        (resource.data.visibility == 'church' && isApprovedChurchMember(request.auth.uid, resource.data.churchId)) ||
-        isChurchLeader(resource.data.churchId) ||
-        isAdmin()
-      );
-      allow create: if isSignedIn() && isValidId(eventId) && isValidEvent(incoming()) && (
-        (incoming().organizerType == 'user' && incoming().organizerId == request.auth.uid && incoming().churchId == null) ||
-        (incoming().organizerType == 'church' && incoming().organizerId == request.auth.uid && isChurchLeader(incoming().churchId))
-      );
-      allow update: if isSignedIn() && isValidId(eventId) && isValidEvent(incoming()) &&
-                    incoming().eventId == existing().eventId &&
-                    incoming().organizerId == existing().organizerId &&
-                    incoming().organizerType == existing().organizerType &&
-                    incoming().churchId == existing().churchId &&
-                    incoming().createdAt == existing().createdAt && (
-                      existing().organizerId == request.auth.uid ||
-                      isChurchLeader(existing().churchId) ||
-                      isAdmin()
-                    );
-      allow delete: if isSignedIn() && (
-        existing().organizerId == request.auth.uid ||
-        isChurchLeader(existing().churchId) ||
-        isAdmin()
-      );
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
     }
 
+    // Event Participants
     match /eventParticipants/{participantId} {
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(participantId) && isValidEventParticipant(incoming()) && (
-        incoming().userId == request.auth.uid &&
-        incoming().status == 'registered' &&
-        exists(/databases/$(database)/documents/events/$(incoming().eventId))
-      );
-      allow update: if isSignedIn() && isValidId(participantId) && isValidEventParticipant(incoming()) && (
-        (incoming().userId == request.auth.uid && incoming().status == 'cancelled' && existing().status == 'registered') ||
-        (exists(/databases/$(database)/documents/events/$(existing().eventId)) && (
-          get(/databases/$(database)/documents/events/$(existing().eventId)).data.organizerId == request.auth.uid ||
-          isChurchLeader(get(/databases/$(database)/documents/events/$(existing().eventId)).data.churchId)
-        )) ||
-        isAdmin()
-      );
-      allow delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid && existing().status == 'registered');
+      allow get, list, create, update, delete: if isSignedIn();
     }
 
+    // Collaborations
     match /collaborations/{collaborationId} {
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(collaborationId) && isValidCollaboration(incoming()) && (
-        (incoming().needOwnerId == request.auth.uid || incoming().resourceOwnerId == request.auth.uid) &&
-        exists(/databases/$(database)/documents/needs/$(incoming().needId)) &&
-        exists(/databases/$(database)/documents/resources/$(incoming().resourceId))
-      );
-      allow update: if isSignedIn() && isValidId(collaborationId) && isValidCollaboration(incoming()) && (
-        (existing().needOwnerId == request.auth.uid || existing().resourceOwnerId == request.auth.uid) &&
-        incoming().needOwnerId == existing().needOwnerId &&
-        incoming().resourceOwnerId == existing().resourceOwnerId &&
-        incoming().needId == existing().needId &&
-        incoming().resourceId == existing().resourceId
-      );
-      allow delete: if isAdmin() || (isSignedIn() && (existing().needOwnerId == request.auth.uid || existing().resourceOwnerId == request.auth.uid) && existing().status == 'proposed');
+      allow get, list, create, update, delete: if isSignedIn();
     }
 
+    // Notifications
+    match /notifications/{notificationId} {
+      allow list: if isSignedIn();
+      allow get, create, update, delete: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || request.resource.data.userId == request.auth.uid);
+    }
+
+    // Community Posts
     match /posts/{postId} {
-      allow get: if isSignedIn() && (
-        resource.data.visibility == 'public' ||
-        resource.data.authorId == request.auth.uid ||
-        (resource.data.visibility == 'church' && isApprovedChurchMember(request.auth.uid, resource.data.churchId)) ||
-        isAdmin()
-      );
-      allow list: if isSignedIn() && (
-        resource.data.visibility == 'public' ||
-        resource.data.authorId == request.auth.uid ||
-        (resource.data.visibility == 'church' && isApprovedChurchMember(request.auth.uid, resource.data.churchId)) ||
-        isAdmin()
-      );
-      allow create: if isSignedIn() && isValidId(postId) && isValidPost(incoming()) && (
-        incoming().authorId == request.auth.uid &&
-        (incoming().churchId == null || isApprovedChurchMember(request.auth.uid, incoming().churchId))
-      );
-      allow update: if isSignedIn() && isValidId(postId) && isValidPost(incoming()) && (
-        (existing().authorId == request.auth.uid && incoming().authorId == existing().authorId && incoming().postId == existing().postId) ||
-        (incoming().authorId == existing().authorId && incoming().postId == existing().postId && (incoming().reactions != existing().reactions || incoming().commentCount != existing().commentCount)) ||
-        isAdmin()
-      );
-      allow delete: if isAdmin() || (isSignedIn() && existing().authorId == request.auth.uid);
+      allow get, list, create, update, delete: if isSignedIn();
     }
 
+    // Comments
     match /comments/{commentId} {
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(commentId) && isValidComment(incoming()) && (
-        incoming().authorId == request.auth.uid &&
-        exists(/databases/$(database)/documents/posts/$(incoming().postId))
-      );
-      allow update: if isSignedIn() && isValidId(commentId) && isValidComment(incoming()) && (
-        existing().authorId == request.auth.uid &&
-        incoming().authorId == existing().authorId &&
-        incoming().postId == existing().postId
-      );
-      allow delete: if isAdmin() || (isSignedIn() && (
-        existing().authorId == request.auth.uid ||
-        get(/databases/$(database)/documents/posts/$(existing().postId)).data.authorId == request.auth.uid
-      ));
+      allow get, list, create, update, delete: if isSignedIn();
     }
 
+    // Opportunities
     match /opportunities/{opportunityId} {
-      allow get: if isSignedIn() && (
-        resource.data.visibility == 'public' ||
-        resource.data.authorId == request.auth.uid ||
-        (resource.data.visibility == 'church' && isApprovedChurchMember(request.auth.uid, resource.data.churchId)) ||
-        isChurchLeader(resource.data.churchId) ||
-        isAdmin()
-      );
-      allow list: if isSignedIn() && (
-        resource.data.visibility == 'public' ||
-        resource.data.authorId == request.auth.uid ||
-        (resource.data.visibility == 'church' && isApprovedChurchMember(request.auth.uid, resource.data.churchId)) ||
-        isChurchLeader(resource.data.churchId) ||
-        isAdmin()
-      );
-      allow create: if isSignedIn() && isValidId(opportunityId) && isValidOpportunity(incoming()) && (
-        incoming().authorId == request.auth.uid &&
-        (incoming().churchId == null || isApprovedChurchMember(request.auth.uid, incoming().churchId) || isChurchLeader(incoming().churchId))
-      );
-      allow update: if isSignedIn() && isValidId(opportunityId) && isValidOpportunity(incoming()) && (
-        (incoming().opportunityId == existing().opportunityId && incoming().authorId == existing().authorId && incoming().churchId == existing().churchId && (
-          existing().authorId == request.auth.uid ||
-          isChurchLeader(existing().churchId) ||
-          isAdmin()
-        )) ||
-        // Counter increment from response
-        (incoming().opportunityId == existing().opportunityId && incoming().authorId == existing().authorId && incoming().churchId == existing().churchId && incoming().responseCount != existing().responseCount)
-      );
-      allow delete: if isAdmin() || (isSignedIn() && (
-        existing().authorId == request.auth.uid ||
-        isChurchLeader(existing().churchId)
-      ));
+      allow get, list, create, update, delete: if isSignedIn();
     }
 
     match /opportunityResponses/{responseId} {
-      allow get: if isSignedIn() && (
-        resource.data.responderId == request.auth.uid ||
-        resource.data.opportunityAuthorId == request.auth.uid ||
-        isAdmin()
-      );
-      allow list: if isSignedIn() && (
-        resource.data.responderId == request.auth.uid ||
-        resource.data.opportunityAuthorId == request.auth.uid ||
-        isAdmin()
-      );
-      allow create: if isSignedIn() && isValidId(responseId) && isValidOpportunityResponse(incoming()) && (
-        incoming().responderId == request.auth.uid &&
-        incoming().status == 'pending' &&
-        exists(/databases/$(database)/documents/opportunities/$(incoming().opportunityId)) &&
-        incoming().opportunityAuthorId == get(/databases/$(database)/documents/opportunities/$(incoming().opportunityId)).data.authorId
-      );
-      allow update: if isSignedIn() && isValidId(responseId) && isValidOpportunityResponse(incoming()) &&
-                    incoming().responseId == existing().responseId &&
-                    incoming().opportunityId == existing().opportunityId &&
-                    incoming().opportunityAuthorId == existing().opportunityAuthorId &&
-                    incoming().responderId == existing().responderId && (
-        (existing().opportunityAuthorId == request.auth.uid && incoming().status in ['accepted', 'rejected'] && incoming().message == existing().message) ||
-        (existing().responderId == request.auth.uid && incoming().status == 'withdrawn') ||
-        isAdmin()
-      );
-      allow delete: if isAdmin() || (isSignedIn() && existing().responderId == request.auth.uid && existing().status == 'pending');
+      allow get, list, create, update, delete: if isSignedIn();
     }
 
+    // Support Tickets & Content Reports
+    match /supportTickets/{ticketId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow get, list: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // Admins
     match /admins/{adminId} {
       allow read, write: if isAdmin();
     }

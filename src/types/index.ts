@@ -33,6 +33,7 @@ export interface CommunityEvent {
   churchId?: string;
   churchName?: string; // Cache
   location: string;
+  imageUrl?: string;
   startAt: string; // ISO DateTime
   endAt: string; // ISO DateTime
   capacity?: number; // Optional capacity
@@ -57,6 +58,10 @@ export interface UserProfile {
   email: string;
   displayName: string;
   professionalTitle?: string;
+  profession?: string;
+  phoneNumber?: string;
+  birthDate?: string;
+  coverPhotoUrl?: string;
   bio?: string;
   location?: string;
   availability?: string;
@@ -65,6 +70,55 @@ export interface UserProfile {
   interests?: string[];
   churchIds?: string[];
   photoUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+  
+  // Account Status (Deactivation)
+  status?: 'active' | 'deactivated';
+  isDeactivated?: boolean;
+  deactivatedAt?: string;
+
+  // Preferences
+  preferences?: {
+    language?: 'fr' | 'en' | 'sw';
+    theme?: 'light' | 'dark' | 'system';
+  };
+
+  // Push Notifications
+  fcmToken?: string;
+  pushNotificationsEnabled?: boolean;
+
+  // New settings fields
+  notificationPreferences?: {
+    needs?: boolean;
+    resources?: boolean;
+    helpRequests?: boolean;
+    collaborations?: boolean;
+    events?: boolean;
+    community?: boolean;
+    churches?: boolean;
+    system?: boolean;
+  };
+  privacySettings?: {
+    profileVisibility?: 'public' | 'church' | 'private';
+    locationVisibility?: boolean;
+    skillsVisibility?: boolean;
+    activityVisibility?: boolean;
+    postsVisibility?: boolean;
+    professionalInfoVisibility?: 'public' | 'church' | 'private';
+    contactVisibility?: 'public' | 'church' | 'private';
+  };
+}
+
+export interface SupportTicket {
+  ticketId: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  type: 'bug' | 'content_report' | 'contact' | 'question' | 'other';
+  subject: string;
+  message: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
   createdAt: string;
   updatedAt: string;
 }
@@ -223,6 +277,7 @@ export interface Need {
   urgency: NeedUrgency;
   status: NeedStatus;
   visibility: NeedVisibility;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -246,6 +301,7 @@ export interface Resource {
   availableFrom: string;
   availableUntil?: string;
   status: ResourceStatus;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -294,4 +350,4 @@ export interface Collaboration {
   leaderIds?: string[];
 }
 
-export type ActiveTab = 'home' | 'churches' | 'events' | 'opportunities' | 'community' | 'profile' | 'needs' | 'resources';
+export type ActiveTab = 'home' | 'churches' | 'events' | 'opportunities' | 'community' | 'profile' | 'needs' | 'resources' | 'notifications';

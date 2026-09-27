@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth, testFirestoreConnection } from '../firebase/config';
-import { getUserProfile, saveUserProfile } from '../firebase/services/userService';
+import { getUserProfile, saveUserProfile, reactivateAccount } from '../firebase/services/userService';
 import { logoutUser } from '../firebase/services/authService';
 import { fetchUserMemberships, fetchUserNotifications, subscribeToUserNotifications } from '../firebase/services/dataService';
+import { showBrowserNotification } from '../firebase/services/notificationService';
 import { UserProfile, ChurchMember, ChurchNotification } from '../types';
-import { getHumanErrorMessage } from '../firebase/errors';
+import { getHumanErrorMessage, isNetworkOrOfflineError } from '../firebase/errors';
 
 interface AuthContextType {
   user: User | null;
@@ -16,10 +17,12 @@ interface AuthContextType {
   error: string | null;
   isOnline: boolean;
   isFirestoreConnected: boolean;
+  isAccountDeactivated: boolean;
   clearError: () => void;
   refreshProfile: () => Promise<void>;
   refreshMemberships: () => Promise<void>;
   refreshNotifications: () => Promise<void>;
+  reactivateCurrentUser: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -34,10 +37,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [isFirestoreConnected, setIsFirestoreConnected] = useState<boolean>(true);
+  const previousNotifIdsRef = useRef<Set<string>>(new Set());
+
+  const isAccountDeactivated = Boolean(profile?.isDeactivated || profile?.status === 'deactivated');
 
   // Network online/offline monitor
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (user) {
+        loadUserProfile(user);
+        loadUserMembershipsAndNotifications(user.uid);
+      }
+    };
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
@@ -47,38 +59,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [user]);
 
   // Firestore connection probe
   useEffect(() => {
+    let isMounted = true;
     testFirestoreConnection().then(ok => {
-      setIsFirestoreConnected(ok);
+      if (isMounted) {
+        setIsFirestoreConnected(ok);
+        if (ok && user && (!profile || !profile.displayName)) {
+          loadUserProfile(user);
+        }
+      }
     });
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   const loadUserProfile = async (firebaseUser: User) => {
     try {
-      let existingProfile = await getUserProfile(firebaseUser.uid);
-      if (!existingProfile) {
-        // Create initial profile record
-        const newProfile: UserProfile = {
-          userId: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          displayName: firebaseUser.displayName || 'Membre ALLORA',
-          photoUrl: firebaseUser.photoURL || undefined,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          skills: [],
-          interests: [],
-          churchIds: [],
-        };
-        await saveUserProfile(newProfile);
-        existingProfile = newProfile;
+      const existingProfile = await getUserProfile(firebaseUser.uid);
+      if (existingProfile) {
+        setProfile(existingProfile);
+        return;
       }
-      setProfile(existingProfile);
+
+      // If document doesn't exist or client is offline, provide valid default profile
+      const defaultProfile: UserProfile = {
+        userId: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Membre ALLORA',
+        photoUrl: firebaseUser.photoURL || undefined,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        skills: [],
+        interests: [],
+        churchIds: [],
+      };
+
+      if (navigator.onLine) {
+        try {
+          await saveUserProfile(defaultProfile);
+        } catch {
+          // Handled gracefully in offline queue
+        }
+      }
+      setProfile(defaultProfile);
     } catch (err) {
-      console.error('Error loading user profile:', err);
-      setError(getHumanErrorMessage(err));
+      console.warn('Notice loading user profile from Firestore:', err);
+      // Fallback profile from Firebase Auth so the user can continue using the application
+      const fallbackProfile: UserProfile = {
+        userId: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Membre ALLORA',
+        photoUrl: firebaseUser.photoURL || undefined,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        skills: [],
+        interests: [],
+        churchIds: [],
+      };
+      setProfile(fallbackProfile);
+
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!isNetworkOrOfflineError(err) && !msg.includes('offline') && !msg.includes('unavailable')) {
+        setError(getHumanErrorMessage(err));
+      }
     }
   };
 
@@ -105,6 +152,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = subscribeToUserNotifications(
       user.uid,
       (realtimeNotifs) => {
+        // Trigger browser notification for newly arrived notifications if enabled
+        if (previousNotifIdsRef.current.size > 0) {
+          const newOnes = realtimeNotifs.filter(
+            n => !n.read && !previousNotifIdsRef.current.has(n.notificationId)
+          );
+          if (newOnes.length > 0) {
+            showBrowserNotification(newOnes[0], profile?.notificationPreferences);
+          }
+        }
+        previousNotifIdsRef.current = new Set(realtimeNotifs.map(n => n.notificationId));
         setNotifications(realtimeNotifs);
       }
     );
@@ -112,7 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       unsubscribe();
     };
-  }, [user]);
+  }, [user, profile?.notificationPreferences]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -132,8 +189,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setLoading(false);
     }, (err) => {
-      console.error('Auth state change error:', err);
-      setError(getHumanErrorMessage(err));
+      console.warn('Auth state change notice:', err);
+      if (!isNetworkOrOfflineError(err)) {
+        setError(getHumanErrorMessage(err));
+      }
       setLoading(false);
     });
 
@@ -157,6 +216,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) {
       const nList = await fetchUserNotifications(user.uid);
       setNotifications(nList);
+    }
+  };
+
+  const reactivateCurrentUser = async () => {
+    if (!user) return;
+    try {
+      await reactivateAccount(user.uid);
+      await refreshProfile();
+    } catch (err) {
+      setError(getHumanErrorMessage(err));
     }
   };
 
@@ -185,10 +254,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         error,
         isOnline,
         isFirestoreConnected,
+        isAccountDeactivated,
         clearError,
         refreshProfile,
         refreshMemberships,
         refreshNotifications,
+        reactivateCurrentUser,
         signOut: handleSignOut,
       }}
     >

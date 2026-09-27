@@ -3,11 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { Header } from './components/layout/Header';
 import { Navigation } from './components/layout/Navigation';
 import { Footer } from './components/layout/Footer';
+import { AlloraLogo } from './components/common/AlloraLogo';
 import { HomeView } from './components/views/HomeView';
 import { ChurchesView } from './components/views/ChurchesView';
 import { EventsView } from './components/views/EventsView';
@@ -16,66 +19,150 @@ import { NeedsView } from './components/views/NeedsView';
 import { ResourcesView } from './components/views/ResourcesView';
 import { CommunityView } from './components/views/CommunityView';
 import { OpportunitiesView } from './components/views/OpportunitiesView';
+import { NotificationsView } from './components/views/NotificationsView';
 import { AuthModal } from './components/auth/AuthModal';
-import { ProfileModal } from './components/auth/ProfileModal';
+import { WelcomeAuthScreen } from './components/auth/WelcomeAuthScreen';
 import { ActionSheetModal } from './components/action/ActionSheetModal';
-import { LoadingSpinner } from './components/common/LoadingSpinner';
+import { AppLoadingScreen } from './components/common/AppLoadingScreen';
 import { ActiveTab } from './types';
 
 function MainApp() {
-  const { user, profile, memberships, loading, error, clearError } = useAuth();
+  const { user, profile, memberships, loading, error, clearError, isAccountDeactivated, reactivateCurrentUser, signOut } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
+  const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FAF9F6] flex flex-col items-center justify-center p-6">
-        <LoadingSpinner size="lg" text="Connexion aux fondations ALLORA..." />
-      </div>
-    );
-  }
+  // Splash & animated site loading state before pages are displayed
+  const [isInitialSplash, setIsInitialSplash] = useState(true);
+  const [showSplashOverlay, setShowSplashOverlay] = useState(true);
+
+  useEffect(() => {
+    // Keep animated splash visible for at least 1500ms so animation is smoothly displayed
+    const timer = setTimeout(() => {
+      setIsInitialSplash(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const isActuallyLoading = loading || isInitialSplash;
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#111315] flex flex-col font-sans selection:bg-[#67B7E8]/30">
-      {/* Top Header */}
+    <>
+      {/* Animated Site Loading Screen before pages are displayed */}
+      {showSplashOverlay && (
+        <AppLoadingScreen
+          isExiting={!isActuallyLoading}
+          onFinish={() => setShowSplashOverlay(false)}
+        />
+      )}
+
+      {/* If user is not authenticated, display the Welcome Auth Screen with fixed background & footer */}
+      {!user ? (
+        <WelcomeAuthScreen />
+      ) : isAccountDeactivated ? (
+        <div className="min-h-screen bg-gradient-to-br from-[#19344A] via-[#19344A] to-[#19344A] flex flex-col items-center justify-center p-6 text-white selection:bg-[#67B7E8]/30">
+          <div className="max-w-md w-full bg-white dark:bg-[#19344A] rounded-3xl p-8 text-center shadow-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 space-y-6">
+            <div className="w-16 h-16 rounded-2xl bg-[#FAF9F6] dark:bg-blue-950/40 text-[#67B7E8] dark:text-[#67B7E8] mx-auto flex items-center justify-center">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                <line x1="12" y1="2" x2="12" y2="12" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-[#19344A] dark:text-white mb-2">{t.common.deactivatedTitle}</h2>
+              <p className="text-xs text-[#19344A]/70 dark:text-[#FAF9F6]/70 leading-relaxed font-medium">
+                {t.common.deactivatedDesc}
+              </p>
+            </div>
+            <div className="space-y-3 pt-2">
+              <button
+                onClick={async () => {
+                  setReactivating(true);
+                  try {
+                    await reactivateCurrentUser();
+                  } finally {
+                    setReactivating(false);
+                  }
+                }}
+                disabled={reactivating}
+                className="w-full py-3.5 rounded-2xl bg-[#67B7E8] hover:bg-[#67B7E8] text-white text-xs font-black uppercase tracking-widest shadow-md transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {reactivating ? t.common.reactivating : t.common.reactivateBtn}
+              </button>
+              <button
+                onClick={() => signOut()}
+                className="w-full py-3.5 rounded-2xl bg-[#FAF9F6] dark:bg-[#19344A]/40 text-[#19344A] dark:text-[#FAF9F6] text-xs font-bold hover:bg-slate-200 dark:hover:bg-[#19344A] transition-colors cursor-pointer"
+              >
+                {t.actions.signOut}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="min-h-screen bg-gradient-to-b from-[#FAF9F6] to-[#E8E4D9] dark:bg-gradient-to-b dark:from-[#19344A] dark:to-[#19344A] text-[#19344A] dark:text-[#FAF9F6] flex flex-col font-sans selection:bg-[#67B7E8]/30 transition-colors duration-200">
+      {/* Top Header - clicking profile card opens Profile view directly */}
       <Header
         onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenProfile={() => {
+          setActiveTab('profile');
+          setIsNavMenuOpen(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenNotifications={() => {
+          setActiveTab('notifications');
+          setIsNavMenuOpen(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onNavigateHome={() => {
+          setActiveTab('home');
+          setIsNavMenuOpen(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        isMenuOpen={isNavMenuOpen}
+        onToggleMenu={() => setIsNavMenuOpen((prev) => !prev)}
       />
 
-      {/* Top Desktop Navigation */}
+      {/* Navigation (Mobile navBottom + Tablet/PC Responsive Hamburger Drawer) */}
       <Navigation
         activeTab={activeTab}
         onTabChange={(tab) => {
           setActiveTab(tab);
+          setIsNavMenuOpen(false);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-        onOpenActionSheet={() => setIsActionSheetOpen(true)}
+        onOpenActionSheet={() => {
+          setIsNavMenuOpen(false);
+          setIsActionSheetOpen(true);
+        }}
+        isMenuOpen={isNavMenuOpen}
+        onCloseMenu={() => setIsNavMenuOpen(false)}
+        onToggleMenu={() => setIsNavMenuOpen((prev) => !prev)}
+        onOpenAuth={() => {
+          setIsNavMenuOpen(false);
+          setIsAuthOpen(true);
+        }}
       />
 
-      {/* Global Error Banner (Sober, Accessible) */}
+      {/* Offline Banner */}
+      {!navigator.onLine && (
+        <div className="bg-[#67B7E8] text-white text-xs font-bold py-2 px-4 text-center">
+          {t.common.offlineNotice}
+        </div>
+      )}
+
+      {/* Global Error Banner */}
       {error && (
-        <div className="max-w-4xl mx-auto w-full px-4 pt-4">
-          <div className="p-3.5 rounded-2xl bg-[#FFFFFF] border border-[#19344A]/30 text-[#19344A] text-xs font-medium flex items-center justify-between shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              <span>{error}</span>
-            </div>
+        <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 pt-4">
+          <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-[#19344A] flex items-start justify-between gap-3 text-[#19344A] text-xs">
+            <span>{error}</span>
             <button
               onClick={clearError}
-              className="text-[#19344A]/60 hover:text-[#19344A] cursor-pointer"
-              aria-label="Fermer"
+              className="text-[#19344A] font-bold hover:underline cursor-pointer"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              {t.actions.cancel}
             </button>
           </div>
         </div>
@@ -108,7 +195,6 @@ function MainApp() {
         {activeTab === 'profile' && (
           <ProfileView
             onOpenAuth={() => setIsAuthOpen(true)}
-            onOpenEditProfile={() => setIsProfileOpen(true)}
             onNavigateTab={(tab) => {
               setActiveTab(tab);
               window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -136,20 +222,19 @@ function MainApp() {
             onOpenAuth={() => setIsAuthOpen(true)}
           />
         )}
+
+        {activeTab === 'notifications' && (
+          <NotificationsView />
+        )}
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer variant="light" />
 
       {/* Modals */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
-      />
-
-      <ProfileModal
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
       />
 
       <ActionSheetModal
@@ -169,14 +254,20 @@ function MainApp() {
           }
         }}
       />
-    </div>
+        </div>
+      )}
+    </>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <MainApp />
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

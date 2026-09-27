@@ -9,6 +9,9 @@
         "email": { "type": "string", "maxLength": 256 },
         "displayName": { "type": "string", "maxLength": 100 },
         "professionalTitle": { "type": "string", "maxLength": 100 },
+        "profession": { "type": "string", "maxLength": 100 },
+        "phoneNumber": { "type": "string", "maxLength": 50 },
+        "birthDate": { "type": "string", "maxLength": 50 },
         "bio": { "type": "string", "maxLength": 1000 },
         "location": { "type": "string", "maxLength": 150 },
         "availability": { "type": "string", "maxLength": 100 },
@@ -16,11 +19,12 @@
         "servicesOffered": { "type": "array" },
         "interests": { "type": "array" },
         "churchIds": { "type": "array" },
-        "photoUrl": { "type": "string", "maxLength": 500 },
+        "photoUrl": { "type": "string", "maxLength": 1048576 },
+        "coverPhotoUrl": { "type": "string", "maxLength": 1048576 },
         "createdAt": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
-      "required": ["userId", "email", "displayName", "createdAt", "updatedAt"]
+      "required": ["userId", "email", "displayName"]
     },
     "churches": {
       "title": "Church",
@@ -312,6 +316,24 @@
         "leaderIds": { "type": "array" }
       },
       "required": ["collaborationId", "needId", "resourceId", "needOwnerId", "resourceOwnerId", "status", "quantity", "message", "createdAt", "updatedAt"]
+    },
+    "supportTickets": {
+      "title": "Support Ticket",
+      "description": "User support inquiries, content reports, and issue tickets",
+      "type": "object",
+      "properties": {
+        "ticketId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userEmail": { "type": "string", "maxLength": 256 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "type": { "type": "string", "enum": ["bug", "content_report", "contact", "question", "other"] },
+        "subject": { "type": "string", "maxLength": 200 },
+        "message": { "type": "string", "maxLength": 3000 },
+        "status": { "type": "string", "enum": ["open", "in_progress", "resolved", "closed"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["ticketId", "userId", "userEmail", "userName", "type", "subject", "message", "status", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -370,6 +392,10 @@
     "/opportunityResponses/{responseId}": {
       "schema": { "$ref": "#/entities/opportunityResponses" },
       "description": "User applications and interest in opportunities"
+    },
+    "/supportTickets/{ticketId}": {
+      "schema": { "$ref": "#/entities/supportTickets" },
+      "description": "Support tickets and content reports"
     }
   }
 }

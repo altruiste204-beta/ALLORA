@@ -1,87 +1,113 @@
 import React from 'react';
 
-interface AlloraLogoProps {
+export interface AlloraLogoProps {
   variant?: 'primary' | 'monochrome' | 'white' | 'icon';
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'hero';
   showText?: boolean;
+  showTagline?: boolean;
   className?: string;
+  withContainer?: boolean;
+  animated?: boolean;
 }
 
 export const AlloraLogo: React.FC<AlloraLogoProps> = ({
   variant = 'primary',
   size = 'md',
   showText = true,
+  showTagline = false,
   className = '',
+  withContainer = true,
+  animated = false,
 }) => {
   const sizeMap = {
-    sm: { symbol: 24, font: 'text-base', dot: 3 },
-    md: { symbol: 32, font: 'text-xl', dot: 4 },
-    lg: { symbol: 42, font: 'text-2xl', dot: 5 },
-    xl: { symbol: 56, font: 'text-3xl', dot: 6 },
+    sm: { symbol: 28, font: 'text-sm', tagFont: 'text-[9px]' },
+    md: { symbol: 36, font: 'text-lg', tagFont: 'text-[11px]' },
+    lg: { symbol: 52, font: 'text-2xl', tagFont: 'text-xs' },
+    xl: { symbol: 72, font: 'text-3xl', tagFont: 'text-sm' },
+    '2xl': { symbol: 96, font: 'text-4xl', tagFont: 'text-base' },
+    hero: { symbol: 120, font: 'text-5xl', tagFont: 'text-lg' },
   };
 
   const currentSize = sizeMap[size];
 
-  // Color mappings conforming strictly to ALLORA guidelines
-  const curveColor1 =
-    variant === 'primary'
-      ? '#19344A' // Deep Blue
-      : variant === 'white'
-      ? '#FFFFFF'
-      : '#111315'; // Soft Black
+  const textColor = variant === 'white' ? 'text-white' : 'text-[#19344A] dark:text-white';
+  const tagColor = variant === 'white' ? 'text-white/80' : 'text-[#19344A]/70 dark:text-white/70';
 
-  const curveColor2 =
-    variant === 'primary'
-      ? '#67B7E8' // Light Blue
-      : variant === 'white'
-      ? '#FAF9F6' // Off-white
-      : '#19344A';
+  const fontStyle = {
+    fontFamily: "'Oswald', sans-serif",
+    fontWeight: 600,
+    letterSpacing: '0.04em',
+  };
 
-  const dotColor =
-    variant === 'primary'
-      ? '#67B7E8' // Light Blue
-      : variant === 'white'
-      ? '#FFFFFF'
-      : '#19344A';
-
-  const textColor =
-    variant === 'white' ? 'text-[#FFFFFF]' : 'text-[#19344A]';
+  const taglineStyle = {
+    fontFamily: "'Montserrat', system-ui, sans-serif",
+  };
 
   return (
-    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
-      {/* Abstract A symbol with two connected curves and meeting dot */}
-      <svg
-        width={currentSize.symbol}
-        height={currentSize.symbol}
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0 transition-transform duration-200"
-        aria-label="Logo ALLORA"
+    <div className={`inline-flex items-center gap-3 select-none ${className}`}>
+      {/* Official ALLORA SVG Logo Icon with App Badge Styling */}
+      <div 
+        className={`relative shrink-0 rounded-2xl overflow-hidden transition-all duration-300 ${
+          withContainer 
+            ? 'shadow-xs border border-[#E8E4D9]/80 dark:border-[#67B7E8]/10 bg-[#fefefe]' 
+            : ''
+        } ${animated ? 'hover:scale-105 active:scale-95' : ''}`}
+        style={{ width: currentSize.symbol, height: currentSize.symbol }}
       >
-        {/* Left primary ascending curve */}
-        <path
-          d="M 22 84 C 24 55 42 22 66 18 C 74 16 80 20 80 28 C 80 40 68 56 46 64 C 36 68 28 76 22 84 Z"
-          fill={curveColor1}
-        />
-        {/* Right supportive connecting bridge curve forming the A crossway */}
-        <path
-          d="M 38 60 C 48 54 66 50 78 58 C 84 62 84 72 78 78 C 70 86 52 82 42 74 Z"
-          fill={curveColor2}
-          opacity={variant === 'primary' ? '0.95' : '1'}
-        />
-        {/* The Connection Dot: representing encounter, unity, and need-response convergence */}
-        <circle cx="50" cy="38" r="8" fill={dotColor} />
-      </svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1095 1095"
+          width="100%"
+          height="100%"
+          className="w-full h-full block no-unify"
+          aria-label="Logo ALLORA"
+        >
+          {/* Path 1: Base background canvas cutout */}
+          <path
+            d="M0.25 0.25C365.08 0.25 729.92 0.25 1094.75 0.25C1094.75 365.08 1094.75 729.92 1094.75 1094.75C729.92 1094.75 365.08 1094.75 0.25 1094.75C0.25 729.92 0.25 365.08 0.25 0.25ZM146.71 772C146.48 772.17 146.26 772.33 146.03 772.5C146.03 774.17 146.03 775.83 146.03 777.5C146.25 777.67 146.47 777.83 146.69 778C147.47 814.05 180.28 840.17 213.58 845.67C248.88 851.49 285.27 839.04 311.06 814.63C327.79 798.79 338.89 778.73 350.65 759.2C364.99 735.4 378.58 711.15 392.69 687.21C415.72 648.15 438.13 608.72 461.05 569.59C472.13 550.67 483.52 531.92 494.35 512.85C504.46 495.06 515.08 477.56 525.37 459.88C532.52 447.61 539.25 434.93 547.11 423.11C550.79 426.29 553.18 431.76 555.4 436.02C558.77 442.48 562.89 448.59 566.47 454.94C579.49 478.07 593.02 501.03 606.7 523.77C642.99 584.08 677.98 645.22 713.37 706.13C725.6 727.17 737.51 748.5 750.35 769.17C760.62 785.7 770.78 802.89 785.58 815.89C819.71 845.87 871.03 858.28 912.31 834.83C946.36 815.48 958.32 774.25 939.82 739.68C934.37 729.48 927.5 719.98 921.22 710.28C909.69 692.46 898.31 674.55 886.66 656.81C852.12 604.2 818.33 551.01 784.6 497.88C765.82 468.3 747.67 438.3 728.57 408.92C723.71 401.45 718.91 393.87 714.18 386.31C711.34 381.77 708.71 376.18 705.1 372.39C703.81 368.79 701.26 365.5 699.34 362.17C694.83 354.34 690.26 346.63 685.58 338.91C672.32 317.02 659.41 295.56 638.88 279.58C585.28 237.86 509.64 237.06 456.2 279.68C438.08 294.13 426.12 312.21 414.41 331.89C403.35 350.46 392.21 368.96 380.93 387.39C335.5 461.57 289.32 535.43 241.94 608.39C219.35 643.16 196.82 677.98 174.37 712.85C162.52 731.26 146.91 748.94 146.71 772ZM543 612.73C497.74 614.16 457.06 654.26 456.76 700C456.53 700.17 456.29 700.33 456.05 700.5C456.05 703.83 456.04 707.17 456.03 710.5C456.26 710.67 456.49 710.83 456.72 711C457.52 750.24 489.11 785.9 526.78 794.62C535.05 796.53 543.55 796.89 552 796.81C553.5 796.86 555 796.91 556.5 796.97C556.67 796.73 556.83 796.49 557 796.26C598.56 794.09 636.77 754.39 638.28 713C638.52 712.83 638.77 712.67 639.01 712.5C639.01 707.5 639.01 702.5 639.01 697.5C638.77 697.33 638.52 697.17 638.28 697C636.36 652.53 596.15 613.99 552 612.72C551.83 612.5 551.67 612.28 551.5 612.06C548.83 612.07 546.17 612.07 543.5 612.08C543.33 612.3 543.17 612.51 543 612.73Z"
+            fill={withContainer ? '#fefefe' : 'none'}
+            fillRule="evenodd"
+            stroke={withContainer ? '#fefefe' : 'none'}
+            strokeWidth="0.25"
+            strokeLinejoin="round"
+          />
+          {/* Path 2: Primary cyan/blue arch body */}
+          <path
+            d="M705.1 372.39C701.09 371.01 695.56 363 691.6 359.93C682.13 352.56 671.14 346.94 659.45 344.15C635.13 338.34 606.84 346.22 588.02 362.51C576.18 372.75 567.52 385.85 559.69 399.22C555.31 406.7 549.61 414.8 547.11 423.11C539.25 434.93 532.52 447.61 525.37 459.88C515.08 477.56 504.46 495.06 494.35 512.85C483.52 531.92 472.13 550.67 461.05 569.59C438.13 608.72 415.72 648.15 392.69 687.21C378.58 711.15 364.99 735.4 350.65 759.2C338.89 778.73 327.79 798.79 311.06 814.63C285.27 839.04 248.88 851.49 213.58 845.67C180.28 840.17 147.47 814.05 146.69 778C146.7 776 146.7 774 146.71 772C146.91 748.94 162.52 731.26 174.37 712.85C196.82 677.98 219.35 643.16 241.94 608.39C289.32 535.43 335.5 461.57 380.93 387.39C392.21 368.96 403.35 350.46 414.41 331.89C426.12 312.21 438.08 294.13 456.2 279.68C509.64 237.06 585.28 237.86 638.88 279.58C659.41 295.56 672.32 317.02 685.58 338.91C690.26 346.63 694.83 354.34 699.34 362.17C701.26 365.5 703.81 368.79 705.1 372.39ZM543 612.73C546 612.73 549 612.72 552 612.72C596.15 613.99 636.36 652.53 638.28 697C638.28 702.33 638.28 707.67 638.28 713C636.77 754.39 598.56 794.09 557 796.26C555.5 796.22 554 796.17 552.5 796.13C552.33 796.36 552.17 796.58 552 796.81C543.55 796.89 535.05 796.53 526.78 794.62C489.11 785.9 457.52 750.24 456.72 711C456.74 707.33 456.75 703.67 456.76 700C457.06 654.26 497.74 614.16 543 612.73Z"
+            fill="#67B7E8"
+            fillRule="evenodd"
+            stroke="#67B7E8"
+            strokeWidth="0.25"
+            strokeLinejoin="round"
+          />
+          {/* Path 3: Light sky-blue secondary wing */}
+          <path
+            d="M705.1 372.39C708.71 376.18 711.34 381.77 714.18 386.31C718.91 393.87 723.71 401.45 728.57 408.92C747.67 438.3 765.82 468.3 784.6 497.88C818.33 551.01 852.12 604.2 886.66 656.81C898.31 674.55 909.69 692.46 921.22 710.28C927.5 719.98 934.37 729.48 939.82 739.68C958.32 774.25 946.36 815.48 912.31 834.83C871.03 858.28 819.71 845.87 785.58 815.89C770.78 802.89 760.62 785.7 750.35 769.17C737.51 748.5 725.6 727.17 713.37 706.13C677.98 645.22 642.99 584.08 606.7 523.77C593.02 501.03 579.49 478.07 566.47 454.94C562.89 448.59 558.77 442.48 555.4 436.02C553.18 431.76 550.79 426.29 547.11 423.11C549.61 414.8 555.31 406.7 559.69 399.22C567.52 385.85 576.18 372.75 588.02 362.51C606.84 346.22 635.13 338.34 659.45 344.15C671.14 346.94 682.13 352.56 691.6 359.93C695.56 363 701.09 371.01 705.1 372.39ZM552 612.72C549 612.72 546 612.73 543 612.73C543.17 612.51 543.33 612.3 543.5 612.08C546.17 612.07 548.83 612.07 551.5 612.06C551.67 612.28 551.83 612.5 552 612.72ZM638.28 697C638.52 697.17 638.77 697.33 639.01 697.5C639.01 702.5 639.01 707.5 639.01 712.5C638.77 712.67 638.52 712.83 638.28 713C638.28 707.67 638.28 702.33 638.28 697ZM456.76 700C456.75 703.67 456.74 707.33 456.72 711C456.49 710.83 456.26 710.67 456.03 710.5C456.04 707.17 456.05 703.83 456.05 700.5C456.29 700.33 456.53 700.17 456.76 700ZM146.71 772C146.7 774 146.7 776 146.69 778C146.47 777.83 146.25 777.67 146.03 777.5C146.03 775.83 146.03 774.17 146.03 772.5C146.26 772.33 146.48 772.17 146.71 772ZM557 796.26C556.83 796.49 556.67 796.73 556.5 796.97C555 796.91 553.5 796.86 552 796.81C552.17 796.58 552.33 796.36 552.5 796.13C554 796.17 555.5 796.22 557 796.26Z"
+            fill="#DCEFFA"
+            fillRule="evenodd"
+            stroke="#DCEFFA"
+            strokeWidth="0.25"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
 
       {showText && (
-        <div className="flex flex-col leading-none">
+        <div className="flex flex-col justify-center leading-none">
           <span
-            className={`font-extrabold tracking-tight ${currentSize.font} ${textColor}`}
-            style={{ fontFamily: "'Hero New', 'Montserrat', sans-serif", letterSpacing: '-0.03em' }}
+            className={`${currentSize.font} ${textColor} tracking-tight font-bold font-['Oswald'] font-allora`}
+            style={fontStyle}
           >
             ALLORA
           </span>
+          {showTagline && (
+            <span 
+              className={`font-medium tracking-normal mt-1 ${currentSize.tagFont} ${tagColor}`}
+              style={taglineStyle}
+            >
+              Ensemble pour aller plus loin
+            </span>
+          )}
         </div>
       )}
     </div>
