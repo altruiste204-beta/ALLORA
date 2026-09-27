@@ -112,6 +112,48 @@
   }
 }
 
+@keyframes allora-loading-spin-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 20px rgba(62, 158, 224, 0.6));
+  }
+  50% {
+    transform: scale(1.08) rotate(5deg);
+    filter: drop-shadow(0 0 35px rgba(255, 255, 255, 0.9));
+  }
+}
+
+@keyframes allora-branch-anim {
+  0% {
+    transform: scale(0.08);
+    opacity: 0;
+    fill: #FFFFFF;
+    stroke: #FFFFFF;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 1));
+  }
+  30% {
+    transform: scale(0.48);
+    opacity: 0.95;
+    fill: #FFFFFF;
+    stroke: #FFFFFF;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.95));
+  }
+  65% {
+    transform: scale(1.05);
+    opacity: 1;
+    fill: #FFFFFF;
+    stroke: #FFFFFF;
+    filter: drop-shadow(0 0 30px rgba(103, 183, 232, 0.85));
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    fill: #3e9ee0;
+    stroke: #3e9ee0;
+    filter: drop-shadow(0 0 15px rgba(62, 158, 224, 0.7));
+  }
+}
+
 .animate-allora-breathe {
   animation: allora-logo-breathe 2.8s ease-in-out infinite;
 }
@@ -122,5 +164,15 @@
 
 .animate-allora-shimmer {
   animation: allora-shimmer 2s infinite;
+}
+
+.animate-allora-loading {
+  animation: allora-loading-spin-pulse 3s ease-in-out infinite;
+}
+
+.kaushan-script-regular {
+  font-family: "Kaushan Script", cursive;
+  font-weight: 400;
+  font-style: normal;
 }
 

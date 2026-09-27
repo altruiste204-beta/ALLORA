@@ -22,7 +22,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onNavigateTab
 }) => {
   const { user, profile, memberships, refreshProfile, refreshMemberships, signOut } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   // View states: 'profile' | 'edit' | 'settings'
   const [viewMode, setViewMode] = useState<'profile' | 'edit' | 'settings'>('profile');
@@ -277,6 +277,32 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     }
   };
 
+  const handleUpdateSkills = async (newSkills: string[]) => {
+    if (!user) return;
+    setEditSkills(newSkills);
+    try {
+      if (profile) {
+        await updateUserFields(user.uid, { skills: newSkills });
+      } else {
+        const initialProfile: UserProfile = {
+          userId: user.uid,
+          email: user.email || '',
+          displayName: (user.displayName || user.email?.split('@')[0] || 'Membre ALLORA').substring(0, 100),
+          skills: newSkills,
+          interests: [],
+          churchIds: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await saveUserProfile(initialProfile);
+      }
+      await refreshProfile();
+    } catch (err) {
+      console.error('Error saving skills:', err);
+      throw err;
+    }
+  };
+
   if (!user) {
     return (
       <div className="rounded-3xl bg-white dark:bg-[#19344A] border border-[#19344A]/10 dark:border-[#67B7E8]/10 p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm my-6">
@@ -320,6 +346,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           onOpenSettings={() => setViewMode('settings')}
           onNavigateTab={onNavigateTab}
           onOpenImageViewer={(type, url, title) => setViewingImage({ type, url, title })}
+          onUpdateSkills={handleUpdateSkills}
         />
       )}
 
@@ -372,6 +399,94 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <textarea value={editBio} onChange={e => setEditBio(e.target.value)} rows={4} className="w-full px-4 py-3 rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#1D334D] focus:border-[#67B7E8] outline-none text-sm font-bold text-[#19344A] dark:text-white resize-none" />
               </div>
 
+              {/* Compétences dans le formulaire de modification */}
+              <div>
+                <label className="block text-xs font-black text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-widest mb-2">
+                  {t.profile.skills}
+                </label>
+
+                {/* Badges des compétences sélectionnées */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {editSkills.length > 0 ? (
+                    editSkills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] text-[#19344A] dark:text-[#FAF9F6] text-xs font-bold border border-[#E8E4D9] dark:border-[#67B7E8]/20"
+                      >
+                        <span>{skill}</span>
+                        <button
+                          type="button"
+                          onClick={() => setEditSkills(editSkills.filter(s => s !== skill))}
+                          className="w-4 h-4 rounded-full flex items-center justify-center text-[#6F7B85] hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                          aria-label={`Supprimer ${skill}`}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-xs text-[#6F7B85] italic py-0.5">
+                      {t.profile.noSkills}. Renseignez vos compétences ci-dessous.
+                    </p>
+                  )}
+                </div>
+
+                {/* Saisie d'une nouvelle compétence */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const trimmed = skillInput.trim();
+                        if (trimmed && !editSkills.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
+                          setEditSkills([...editSkills, trimmed]);
+                          setSkillInput('');
+                        }
+                      }
+                    }}
+                    placeholder="Ajouter une compétence (ex: Sonorisation, Chant, Comptabilité...)"
+                    className="flex-1 px-4 py-3 rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#1D334D] focus:border-[#67B7E8] outline-none text-sm font-bold text-[#19344A] dark:text-white placeholder-[#6F7B85]/60"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const trimmed = skillInput.trim();
+                      if (trimmed && !editSkills.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
+                        setEditSkills([...editSkills, trimmed]);
+                        setSkillInput('');
+                      }
+                    }}
+                    className="px-5 py-3 rounded-2xl bg-[#19344A] dark:bg-[#67B7E8] text-white text-xs font-bold hover:opacity-90 transition-all cursor-pointer shrink-0"
+                  >
+                    + Ajouter
+                  </button>
+                </div>
+
+                {/* Suggestions rapides en 1 clic */}
+                <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                  <span className="text-[10px] uppercase font-bold text-[#6F7B85] shrink-0">Suggestions :</span>
+                  {['Sonorisation', 'Musique', 'Chant', 'Vidéo & Streaming', 'Accueil', 'Logistique', 'Comptabilité', 'Enseignement', 'Informatique', 'Cuisine']
+                    .filter(s => !editSkills.some(es => es.toLowerCase() === s.toLowerCase()))
+                    .slice(0, 6)
+                    .map(s => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setEditSkills([...editSkills, s])}
+                        className="px-2.5 py-1 rounded-lg bg-[#FAF9F6] dark:bg-[#1D334D] text-[#19344A] dark:text-[#FAF9F6]/80 text-[11px] font-semibold border border-[#E8E4D9] dark:border-[#67B7E8]/20 hover:border-[#67B7E8] hover:text-[#67B7E8] shrink-0 cursor-pointer transition-colors"
+                      >
+                        + {s}
+                      </button>
+                    ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-black text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-widest mb-2">{t.profile.location}</label>
@@ -381,6 +496,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <label className="block text-xs font-black text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-widest mb-2">{t.profile.phone}</label>
                   <input type="tel" value={editPhoneNumber} onChange={e => setEditPhoneNumber(e.target.value)} className="w-full px-4 py-3 rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#1D334D] focus:border-[#67B7E8] outline-none text-sm font-bold text-[#19344A] dark:text-white" />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-widest mb-2">{t.profile.availability}</label>
+                <input 
+                  type="text" 
+                  value={editAvailability} 
+                  onChange={e => setEditAvailability(e.target.value)} 
+                  placeholder={language === 'fr' ? "Ex: Soirs et week-ends, Temps partiel..." : "Ex: Evenings & weekends, Part-time..."}
+                  className="w-full px-4 py-3 rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#1D334D] focus:border-[#67B7E8] outline-none text-sm font-bold text-[#19344A] dark:text-white" 
+                />
               </div>
 
               <div className="flex justify-end gap-3 pt-6 border-t border-slate-50 dark:border-[#67B7E8]/10">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { fetchNeeds, fetchResources, fetchEvents, fetchChurches, fetchUserMemberships } from '../../firebase/services/dataService';
 import { Need, Resource, CommunityEvent, Church, ChurchMember, ActiveTab } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -11,6 +11,36 @@ import heroBannerImg2 from '../../assets/images/allora_welcome_hero_179024408540
 import heroBannerImg3 from '../../assets/images/allora_community_landscape_1790282534868.jpg';
 
 const HERO_IMAGES = [heroBannerImg1, heroBannerImg2, heroBannerImg3];
+
+interface SearchSuggestion {
+  id: string;
+  title: string;
+  type: 'resource' | 'event';
+  category?: string;
+  isPopular?: boolean;
+}
+
+// Popular curated resources and events for church & community sharing
+const POPULAR_SUGGESTIONS: SearchSuggestion[] = [
+  // Ressources populaires
+  { id: 'pop-r1', title: 'Système de sonorisation & micros', type: 'resource', category: 'Audio', isPopular: true },
+  { id: 'pop-r2', title: 'Vidéoprojecteur HD & écran géant', type: 'resource', category: 'Multimédia', isPopular: true },
+  { id: 'pop-r3', title: 'Microphones sans fil HF', type: 'resource', category: 'Audio', isPopular: true },
+  { id: 'pop-r4', title: 'Instruments de musique (guitare, piano)', type: 'resource', category: 'Musique', isPopular: true },
+  { id: 'pop-r5', title: 'Minibus / Véhicule de transport', type: 'resource', category: 'Transport', isPopular: true },
+  { id: 'pop-r6', title: 'Chaises et tables de réception', type: 'resource', category: 'Mobilier', isPopular: true },
+  { id: 'pop-r7', title: 'Caméra de streaming live & régie', type: 'resource', category: 'Média', isPopular: true },
+  { id: 'pop-r8', title: 'Salle polyvalente / Répétition', type: 'resource', category: 'Locaux', isPopular: true },
+  // Événements populaires
+  { id: 'pop-e1', title: 'Concert de louange & adoration', type: 'event', category: 'Musique', isPopular: true },
+  { id: 'pop-e2', title: 'Soirée de prière & jeûne communautaire', type: 'event', category: 'Spiritualité', isPopular: true },
+  { id: 'pop-e3', title: 'Conférence annuelle des ministères', type: 'event', category: 'Conférence', isPopular: true },
+  { id: 'pop-e4', title: 'Formation technique sonorisation & vidéo', type: 'event', category: 'Formation', isPopular: true },
+  { id: 'pop-e5', title: 'Rassemblement jeunesse & activités', type: 'event', category: 'Jeunesse', isPopular: true },
+  { id: 'pop-e6', title: 'Séminaire de formation & discipulat', type: 'event', category: 'Enseignement', isPopular: true },
+  { id: 'pop-e7', title: 'Culte d’actions de grâce inter-églises', type: 'event', category: 'Culte', isPopular: true },
+  { id: 'pop-e8', title: 'Partage fraternel & agape', type: 'event', category: 'Communauté', isPopular: true },
+];
 
 interface HomeViewProps {
   onOpenActionSheet: () => void;
@@ -69,6 +99,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearchFilter, setActiveSearchFilter] = useState<'all' | 'needs' | 'resources' | 'events'>('all');
+  const [isAutocompleteOpen, setIsAutocompleteOpen] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Carousel effect
   useEffect(() => {
@@ -154,9 +187,135 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return [loc.zone, loc.city, loc.country].filter(Boolean).join(', ');
   };
 
-  // Live search filtering across needs, resources, and events
+  // Live search normalized query
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
+  // Close autocomplete on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsAutocompleteOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Autocomplete dynamic suggestions (resources + events)
+  const autocompleteSuggestions = useMemo<SearchSuggestion[]>(() => {
+    if (!normalizedQuery) return [];
+
+    // Live resources from Firestore
+    const liveResItems: SearchSuggestion[] = resources
+      .filter(r => r.status === 'available')
+      .map(r => ({
+        id: r.resourceId,
+        title: r.title,
+        type: 'resource',
+        category: r.category,
+        isPopular: false
+      }));
+
+    // Live events from Firestore
+    const liveEventItems: SearchSuggestion[] = events
+      .filter(e => e.status !== 'cancelled')
+      .map(e => ({
+        id: e.eventId,
+        title: e.title,
+        type: 'event',
+        category: e.category,
+        isPopular: false
+      }));
+
+    // Combined pool: live items + curated popular suggestions
+    const pool: SearchSuggestion[] = [...liveResItems, ...liveEventItems, ...POPULAR_SUGGESTIONS];
+
+    // Deduplicate by title (case insensitive)
+    const seenTitles = new Set<string>();
+    const matches: SearchSuggestion[] = [];
+
+    for (const item of pool) {
+      const titleKey = item.title.trim().toLowerCase();
+      if (seenTitles.has(titleKey)) continue;
+
+      const titleMatches = titleKey.includes(normalizedQuery);
+      const catMatches = item.category?.toLowerCase().includes(normalizedQuery);
+
+      if (titleMatches || catMatches) {
+        seenTitles.add(titleKey);
+        matches.push(item);
+      }
+    }
+
+    // Sort: Exact prefix first, then word prefix, then popularity
+    return matches.sort((a, b) => {
+      const aKey = a.title.toLowerCase();
+      const bKey = b.title.toLowerCase();
+      const aStarts = aKey.startsWith(normalizedQuery) ? 1 : 0;
+      const bStarts = bKey.startsWith(normalizedQuery) ? 1 : 0;
+      if (bStarts !== aStarts) return bStarts - aStarts;
+
+      // Live items before static ones
+      const aLive = a.isPopular ? 0 : 1;
+      const bLive = b.isPopular ? 0 : 1;
+      return bLive - aLive;
+    }).slice(0, 7);
+  }, [normalizedQuery, resources, events]);
+
+  const handleSelectSuggestion = (suggestion: SearchSuggestion) => {
+    setSearchQuery(suggestion.title);
+    setIsAutocompleteOpen(false);
+    setSelectedSuggestionIndex(-1);
+    if (suggestion.type === 'resource') {
+      setActiveSearchFilter('resources');
+    } else if (suggestion.type === 'event') {
+      setActiveSearchFilter('events');
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isAutocompleteOpen || autocompleteSuggestions.length === 0) {
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedSuggestionIndex(prev => 
+        prev < autocompleteSuggestions.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedSuggestionIndex(prev => 
+        prev > 0 ? prev - 1 : autocompleteSuggestions.length - 1
+      );
+    } else if (e.key === 'Enter') {
+      if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < autocompleteSuggestions.length) {
+        e.preventDefault();
+        handleSelectSuggestion(autocompleteSuggestions[selectedSuggestionIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setIsAutocompleteOpen(false);
+    }
+  };
+
+  // Helper to highlight matching text in suggestions
+  const highlightMatch = (text: string, query: string) => {
+    if (!query.trim()) return text;
+    const q = query.trim();
+    const index = text.toLowerCase().indexOf(q.toLowerCase());
+    if (index === -1) return text;
+    const before = text.slice(0, index);
+    const match = text.slice(index, index + q.length);
+    const after = text.slice(index + q.length);
+    return (
+      <>
+        {before}
+        <span className="text-[#67B7E8] font-black underline decoration-2 decoration-[#67B7E8]/40">{match}</span>
+        {after}
+      </>
+    );
+  };
+
+  // Live search filtering across needs, resources, and events
   const matchingNeeds = normalizedQuery
     ? needs.filter(n =>
         n.title?.toLowerCase().includes(normalizedQuery) ||
@@ -201,7 +360,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   return (
     <div className="space-y-6 max-w-md md:max-w-4xl mx-auto w-full pb-8">
       {/* 0. Barre de recherche communautaire en haut de page */}
-      <section className="relative z-30">
+      <section ref={searchContainerRef} className="relative z-30">
         <div className="relative flex items-center">
           <div className="absolute left-4 pointer-events-none text-[#6F7B85] dark:text-[#FAF9F6]/50">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -212,7 +371,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsAutocompleteOpen(true);
+              setSelectedSuggestionIndex(-1);
+            }}
+            onFocus={() => {
+              setIsAutocompleteOpen(true);
+            }}
+            onKeyDown={handleSearchKeyDown}
             placeholder={
               language === 'fr'
                 ? 'Rechercher une ressource, un événement, un besoin...'
@@ -225,7 +392,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery('')}
+              onClick={() => {
+                setSearchQuery('');
+                setIsAutocompleteOpen(false);
+                setSelectedSuggestionIndex(-1);
+              }}
               className="absolute right-3 p-1.5 rounded-full text-[#6F7B85] hover:text-[#111315] dark:hover:text-white hover:bg-[#FAF9F6] dark:hover:bg-[#111315] transition-all cursor-pointer"
               aria-label="Effacer la recherche"
             >
@@ -235,7 +406,117 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </svg>
             </button>
           )}
+
+          {/* Dropdown d'auto-complétion intelligente */}
+          {isAutocompleteOpen && autocompleteSuggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-[#19344A] rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/25 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 divide-y divide-[#E8E4D9]/60 dark:divide-[#67B7E8]/10">
+              <div className="px-3.5 py-2 bg-[#FAF9F6] dark:bg-[#111315]/50 flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#6F7B85] dark:text-[#FAF9F6]/60 flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#67B7E8]">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                  </svg>
+                  {language === 'fr' ? 'Suggestions d’auto-complétion' : 'Auto-complete Suggestions'}
+                </span>
+                <span className="text-[9px] text-[#6F7B85]/70 dark:text-[#FAF9F6]/40 hidden sm:inline">
+                  {language === 'fr' ? 'Utilisez ↑ ↓ puis Entrée' : 'Use ↑ ↓ then Enter'}
+                </span>
+              </div>
+
+              <div className="max-h-72 overflow-y-auto py-1">
+                {autocompleteSuggestions.map((item, idx) => {
+                  const isSelected = selectedSuggestionIndex === idx;
+                  const isResource = item.type === 'resource';
+                  return (
+                    <button
+                      key={`${item.type}-${item.id}-${idx}`}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelectSuggestion(item);
+                      }}
+                      className={`w-full px-3.5 py-2.5 flex items-center justify-between text-left transition-colors cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#EAF6FD] dark:bg-[#1D334D]'
+                          : 'hover:bg-[#FAF9F6] dark:hover:bg-[#1D334D]/60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                        <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          isResource
+                            ? 'bg-[#EAF7F0] text-[#22A06B] dark:bg-[#22A06B]/20'
+                            : 'bg-[#EAF6FD] text-[#67B7E8] dark:bg-[#67B7E8]/20'
+                        }`}>
+                          {isResource ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="m21 16-9 5-9-5V8l9-5 9 5v8Z" />
+                              <path d="M3.27 6.96 12 12.01l8.73-5.05" />
+                              <path d="M12 22.08V12" />
+                            </svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                              <line x1="16" y1="2" x2="16" y2="6" />
+                              <line x1="8" y1="2" x2="8" y2="6" />
+                              <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                          )}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#111315] dark:text-white truncate">
+                            {highlightMatch(item.title, searchQuery)}
+                          </p>
+                          {item.category && (
+                            <p className="text-[10px] text-[#6F7B85] dark:text-[#FAF9F6]/60 truncate">
+                              {item.category}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                          isResource
+                            ? 'bg-[#EAF7F0] text-[#22A06B] dark:bg-[#22A06B]/20'
+                            : 'bg-[#EAF6FD] text-[#67B7E8] dark:bg-[#67B7E8]/20'
+                        }`}>
+                          {isResource
+                            ? (language === 'fr' ? 'Ressource' : 'Resource')
+                            : (language === 'fr' ? 'Événement' : 'Event')}
+                        </span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="text-[#6F7B85] dark:text-[#FAF9F6]/40">
+                          <line x1="7" y1="17" x2="17" y2="7" />
+                          <polyline points="7 7 17 7 17 17" />
+                        </svg>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Suggestions populaires en accès direct lorsque le champ est vide */}
+        {!searchQuery && (
+          <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+            <span className="text-[10px] uppercase font-black tracking-wider text-[#6F7B85] dark:text-[#FAF9F6]/50 shrink-0">
+              {language === 'fr' ? 'Populaires :' : 'Popular:'}
+            </span>
+            {['Sonorisation', 'Vidéoprojecteur', 'Concert de louange', 'Veillée de prière', 'Microphones', 'Minibus / Transport', 'Formation audio'].map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => {
+                  setSearchQuery(item);
+                  setIsAutocompleteOpen(false);
+                }}
+                className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/15 text-[11px] font-semibold text-[#19344A] dark:text-[#FAF9F6]/80 hover:border-[#67B7E8] hover:text-[#67B7E8] dark:hover:text-[#67B7E8] transition-all shrink-0 cursor-pointer shadow-2xs"
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Panneau de résultats de recherche */}
         {normalizedQuery.length > 0 && (

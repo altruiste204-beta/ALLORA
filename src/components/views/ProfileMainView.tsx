@@ -13,7 +13,26 @@ interface ProfileMainViewProps {
   onOpenSettings: () => void;
   onNavigateTab: (tab: ActiveTab) => void;
   onOpenImageViewer: (type: 'avatar' | 'banner', url: string | undefined, title: string) => void;
+  onUpdateSkills?: (newSkills: string[]) => Promise<void>;
 }
+
+// Popular community skill suggestions for quick self-filling
+const POPULAR_SKILL_SUGGESTIONS = [
+  'Sonorisation & Audio',
+  'Musique & Instruments',
+  'Chant & Chorale',
+  'Vidéo & Streaming',
+  'Accueil & Protocole',
+  'Logistique & Événementiel',
+  'Comptabilité & Gestion',
+  'Enseignement & Prédication',
+  'Informatique & Web',
+  'Cuisine & Restauration',
+  'Bricolage & Travaux',
+  'Communication & Médias',
+  'Graphisme & Visuels',
+  'Prière & Intercession'
+];
 
 export const ProfileMainView: React.FC<ProfileMainViewProps> = ({
   user,
@@ -24,9 +43,10 @@ export const ProfileMainView: React.FC<ProfileMainViewProps> = ({
   onEdit,
   onOpenSettings,
   onNavigateTab,
-  onOpenImageViewer
+  onOpenImageViewer,
+  onUpdateSkills
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const approvedMemberships = memberships.filter(m => m.status === 'approved');
   const userDisplayName = profile?.displayName || user.displayName || user.email?.split('@')[0] || 'Membre ALLORA';
   const userProfession = profile?.profession || profile?.professionalTitle || t.profile.defaultProfession;
@@ -36,6 +56,56 @@ export const ProfileMainView: React.FC<ProfileMainViewProps> = ({
   const userSkills = profile?.skills || [];
   const userPhoto = (profile && profile.photoUrl !== undefined) ? (profile.photoUrl || '') : (user.photoURL || '');
   const userCover = profile?.coverPhotoUrl || '';
+
+  // Local skills state for instant self-filling and management
+  const [localSkills, setLocalSkills] = React.useState<string[]>(profile?.skills || []);
+  const [skillInputText, setSkillInputText] = React.useState('');
+  const [skillSaveStatus, setSkillSaveStatus] = React.useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  React.useEffect(() => {
+    if (profile?.skills) {
+      setLocalSkills(profile.skills);
+    }
+  }, [profile?.skills]);
+
+  const handleAddSkill = async (skillToAdd: string) => {
+    const trimmed = skillToAdd.trim();
+    if (!trimmed) return;
+    if (localSkills.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
+      setSkillInputText('');
+      return;
+    }
+    const updated = [...localSkills, trimmed];
+    setLocalSkills(updated);
+    setSkillInputText('');
+    if (onUpdateSkills) {
+      setSkillSaveStatus('saving');
+      try {
+        await onUpdateSkills(updated);
+        setSkillSaveStatus('saved');
+        setTimeout(() => setSkillSaveStatus('idle'), 2000);
+      } catch {
+        setSkillSaveStatus('error');
+        setTimeout(() => setSkillSaveStatus('idle'), 3000);
+      }
+    }
+  };
+
+  const handleRemoveSkill = async (skillToRemove: string) => {
+    const updated = localSkills.filter(s => s !== skillToRemove);
+    setLocalSkills(updated);
+    if (onUpdateSkills) {
+      setSkillSaveStatus('saving');
+      try {
+        await onUpdateSkills(updated);
+        setSkillSaveStatus('saved');
+        setTimeout(() => setSkillSaveStatus('idle'), 2000);
+      } catch {
+        setSkillSaveStatus('error');
+        setTimeout(() => setSkillSaveStatus('idle'), 3000);
+      }
+    }
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -97,27 +167,28 @@ export const ProfileMainView: React.FC<ProfileMainViewProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-8">
           <button
             onClick={onEdit}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-[#67B7E8] hover:opacity-95 text-white font-bold text-sm transition-all shadow-md shadow-blue-500/20 active:scale-[0.98] cursor-pointer"
+            className="flex-1 sm:flex-[4] flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl bg-[#67B7E8] hover:opacity-95 text-white font-bold text-sm sm:text-base transition-all shadow-md shadow-blue-500/20 active:scale-[0.98] cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
-            {t.profile.editBtn}
+            <span>{t.profile.editBtn}</span>
           </button>
 
           <button
             onClick={onOpenSettings}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-white dark:bg-[#19344A] hover:bg-[#FAF9F6] dark:hover:bg-[#1D334D] text-[#19344A] dark:text-white font-bold text-sm transition-all shadow-xs border border-[#E8E4D9] dark:border-[#67B7E8]/10 active:scale-[0.98] cursor-pointer"
+            className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center rounded-2xl bg-white dark:bg-[#19344A] hover:bg-[#FAF9F6] dark:hover:bg-[#1D334D] text-[#19344A] dark:text-white transition-all shadow-xs border border-[#E8E4D9] dark:border-[#67B7E8]/10 active:scale-[0.98] cursor-pointer"
+            aria-label={t.profile.settings}
+            title={t.profile.settings}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
-            {t.profile.settings}
           </button>
         </div>
 
@@ -128,6 +199,54 @@ export const ProfileMainView: React.FC<ProfileMainViewProps> = ({
             <section className="p-6 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-sm">
               <h2 className="text-lg font-black text-[#111315] dark:text-white mb-4">{t.profile.about}</h2>
               <div className="space-y-4">
+                {user.email && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-[#DCEFFA] dark:bg-blue-950 text-[#67B7E8] flex items-center justify-center shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-black tracking-widest text-[#6F7B85]">
+                        {language === 'fr' ? 'Email professionnel' : 'Professional Email'}
+                      </p>
+                      <p className="text-sm font-bold text-[#111315] dark:text-white break-all">{user.email}</p>
+                    </div>
+                  </div>
+                )}
+
+                {profile?.phoneNumber && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-[#DCEFFA] dark:bg-blue-950 text-[#67B7E8] flex items-center justify-center shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-black tracking-widest text-[#6F7B85]">
+                        {language === 'fr' ? 'Téléphone' : 'Phone'}
+                      </p>
+                      <p className="text-sm font-bold text-[#111315] dark:text-white">{profile.phoneNumber}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[#DCEFFA] dark:bg-blue-950 text-[#67B7E8] flex items-center justify-center shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-[#6F7B85]">
+                      {language === 'fr' ? 'Domaine / Rôle' : 'Field / Role'}
+                    </p>
+                    <p className="text-sm font-bold text-[#111315] dark:text-white">{userProfession}</p>
+                  </div>
+                </div>
+
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-xl bg-[#DCEFFA] dark:bg-blue-950 text-[#67B7E8] flex items-center justify-center shrink-0">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -175,18 +294,118 @@ export const ProfileMainView: React.FC<ProfileMainViewProps> = ({
               </div>
             </section>
 
-            <section className="p-6 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-sm">
-              <h2 className="text-lg font-black text-[#111315] dark:text-white mb-4">{t.profile.skills}</h2>
-              <div className="flex flex-wrap gap-2">
-                {userSkills.length > 0 ? (
-                  userSkills.map(skill => (
-                    <span key={skill} className="px-3 py-1.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] text-[#19344A] dark:text-[#FAF9F6]/70 text-xs font-bold border border-[#E8E4D9] dark:border-[#67B7E8]/20">
-                      {skill}
+            {/* Section Compétences - Remplissage et gestion par l'utilisateur */}
+            <section className="p-6 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-sm space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#DCEFFA] dark:bg-blue-950 text-[#67B7E8] flex items-center justify-center shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-[#111315] dark:text-white leading-tight">{t.profile.skills}</h2>
+                    <p className="text-[11px] text-[#6F7B85] dark:text-[#FAF9F6]/60">
+                      {language === 'fr' 
+                        ? 'Renseignez vos compétences et talents pour la communauté' 
+                        : 'Fill in your skills and talents to serve the community'}
+                    </p>
+                  </div>
+                </div>
+
+                {skillSaveStatus === 'saving' && (
+                  <span className="text-[11px] font-bold text-[#67B7E8] animate-pulse shrink-0">
+                    {language === 'fr' ? 'Enregistrement...' : 'Saving...'}
+                  </span>
+                )}
+                {skillSaveStatus === 'saved' && (
+                  <span className="text-[11px] font-bold text-[#22A06B] flex items-center gap-1 shrink-0 animate-in fade-in">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    {language === 'fr' ? 'Enregistré' : 'Saved'}
+                  </span>
+                )}
+              </div>
+
+              {/* Badges des compétences actuelles avec suppression immédiate */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {localSkills.length > 0 ? (
+                  localSkills.map(skill => (
+                    <span
+                      key={skill}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] text-[#19344A] dark:text-[#FAF9F6] text-xs font-bold border border-[#E8E4D9] dark:border-[#67B7E8]/20 group transition-all"
+                    >
+                      <span>{skill}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSkill(skill)}
+                        className="w-4 h-4 rounded-full flex items-center justify-center text-[#6F7B85] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                        title={language === 'fr' ? `Retirer ${skill}` : `Remove ${skill}`}
+                        aria-label={`Supprimer ${skill}`}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
                     </span>
                   ))
                 ) : (
-                  <p className="text-xs text-[#6F7B85] italic">{t.profile.noSkills}</p>
+                  <p className="text-xs text-[#6F7B85] italic py-1">
+                    {t.profile.noSkills}. {language === 'fr' ? 'Ajoutez vos talents ci-dessous !' : 'Add your skills below!'}
+                  </p>
                 )}
+              </div>
+
+              {/* Champ d'ajout personnalisé */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAddSkill(skillInputText);
+                }}
+                className="flex gap-2 pt-1"
+              >
+                <input
+                  type="text"
+                  value={skillInputText}
+                  onChange={(e) => setSkillInputText(e.target.value)}
+                  placeholder={
+                    language === 'fr'
+                      ? 'Ajouter une compétence (ex: Sonorisation, Chant, Comptabilité...)'
+                      : 'Add a skill (e.g. Sound audio, Singing, Accounting...)'
+                  }
+                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#1D334D] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs font-bold text-[#111315] dark:text-white placeholder-[#6F7B85]/60 outline-none focus:border-[#67B7E8] transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={!skillInputText.trim()}
+                  className="px-4 py-2.5 rounded-xl bg-[#67B7E8] hover:opacity-90 disabled:opacity-40 text-white text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs active:scale-[0.98]"
+                >
+                  + {language === 'fr' ? 'Ajouter' : 'Add'}
+                </button>
+              </form>
+
+              {/* Suggestions rapides en 1 clic */}
+              <div className="pt-2 border-t border-[#E8E4D9]/60 dark:border-[#67B7E8]/10">
+                <p className="text-[10px] uppercase font-black tracking-wider text-[#6F7B85] mb-2">
+                  {language === 'fr' ? 'Suggestions de compétences populaires :' : 'Popular skill suggestions:'}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {POPULAR_SKILL_SUGGESTIONS
+                    .filter(s => !localSkills.some(ls => ls.toLowerCase() === s.toLowerCase()))
+                    .slice(0, 8)
+                    .map(suggested => (
+                      <button
+                        key={suggested}
+                        type="button"
+                        onClick={() => handleAddSkill(suggested)}
+                        className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#1D334D]/50 border border-[#E8E4D9] dark:border-[#67B7E8]/15 hover:border-[#67B7E8] text-[#19344A] dark:text-[#FAF9F6]/80 hover:text-[#67B7E8] dark:hover:text-[#67B7E8] text-[11px] font-semibold transition-all cursor-pointer shadow-2xs"
+                      >
+                        + {suggested}
+                      </button>
+                    ))}
+                </div>
               </div>
             </section>
           </div>

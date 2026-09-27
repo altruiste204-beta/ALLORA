@@ -25,7 +25,7 @@ export const Footer: React.FC<FooterProps> = ({ variant = 'light' }) => {
           }`}
         >
           <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-            <AlloraLogo size="sm" variant={isDark ? 'white' : 'primary'} />
+            <AlloraLogo size="sm" variant="monochrome" withContainer={false} className="text-[#111315] dark:text-white" />
             <p className={`text-[10px] mt-2 font-black uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-[#6F7B85]'}`}>
               {t.brand.tagline}
             </p>

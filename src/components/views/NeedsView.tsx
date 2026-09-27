@@ -380,7 +380,7 @@ export const NeedsView: React.FC<NeedsViewProps> = ({ onOpenAuth }) => {
               <div 
                 key={need.needId}
                 onClick={() => handleViewNeed(need)}
-                className="p-5 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 hover:border-[#67B7E8] dark:hover:border-[#67B7E8] transition-all duration-200 shadow-xs cursor-pointer flex flex-col justify-between h-48 group"
+                className="p-5 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 hover:border-[#67B7E8] dark:hover:border-[#67B7E8] hover:-translate-y-1 hover:shadow-lg transition-all duration-300 shadow-xs cursor-pointer flex flex-col justify-between h-48 group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">

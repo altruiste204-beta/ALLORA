@@ -387,7 +387,7 @@ export const EventsView: React.FC<EventsViewProps> = ({ onOpenAuth }) => {
               <div
                 key={ev.eventId}
                 onClick={() => handleViewDetails(ev)}
-                className={`p-5 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-xs hover:border-[#19344A]/40 dark:hover:border-[#67B7E8]/40 transition-all flex flex-col justify-between cursor-pointer relative overflow-hidden ${isCancelled ? 'opacity-60' : ''}`}
+                className={`p-5 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-xs hover:shadow-lg hover:-translate-y-1 hover:border-[#19344A]/40 dark:hover:border-[#67B7E8]/40 transition-all duration-300 flex flex-col justify-between cursor-pointer relative overflow-hidden ${isCancelled ? 'opacity-60' : ''}`}
               >
                 {/* Upper row info */}
                 <div>

@@ -395,7 +395,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         {/* Top Header of Drawer */}
         <div className="p-4 border-b border-[#E8E4D9] dark:border-[#67B7E8]/10 flex items-center justify-between shrink-0 bg-[#FAF9F6]/50 dark:bg-[#111315]/30">
           <div className="flex items-center gap-2">
-            <AlloraLogo size="sm" showTagline={false} />
+            <AlloraLogo size="sm" showTagline={false} withContainer={false} />
             <span className="text-xs font-black uppercase tracking-wider text-[#19344A] dark:text-white">
               Navigation
             </span>
