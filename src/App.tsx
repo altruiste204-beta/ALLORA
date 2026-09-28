@@ -17,6 +17,7 @@ import { EventsView } from './components/views/EventsView';
 import { ProfileView } from './components/views/ProfileView';
 import { NeedsView } from './components/views/NeedsView';
 import { ResourcesView } from './components/views/ResourcesView';
+import { CollaborationsView } from './components/views/CollaborationsView';
 import { CommunityView } from './components/views/CommunityView';
 import { OpportunitiesView } from './components/views/OpportunitiesView';
 import { NotificationsView } from './components/views/NotificationsView';
@@ -214,6 +215,16 @@ function MainApp() {
 
         {activeTab === 'resources' && (
           <ResourcesView onOpenAuth={() => setIsAuthOpen(true)} />
+        )}
+
+        {activeTab === 'collaborations' && (
+          <CollaborationsView
+            onOpenAuth={() => setIsAuthOpen(true)}
+            onNavigateTab={(tab) => {
+              setActiveTab(tab);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         )}
         
         {activeTab === 'community' && (

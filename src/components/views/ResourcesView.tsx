@@ -10,7 +10,7 @@ import {
   updateResource, 
   deleteResource,
   createNeedResponse
-} from '../../firebase/services/dataService';
+} from '../../supabase/services/dataService';
 import { findMatchingNeedsForResource } from '../../utils/matching';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { EmptyState } from '../common/EmptyState';

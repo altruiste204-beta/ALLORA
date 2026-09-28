@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useAuth } from '../../context/AuthContext';
-import { joinChurchWithCode, fetchChurches } from '../../firebase/services/dataService';
-import { getHumanErrorMessage } from '../../firebase/errors';
+import { joinChurchWithCode, fetchChurches } from '../../supabase/services/dataService';
+import { getHumanErrorMessage } from '../../supabase/errors';
 import { Church } from '../../types';
 
 interface JoinChurchModalProps {

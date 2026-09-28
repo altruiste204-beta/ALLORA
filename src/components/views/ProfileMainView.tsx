@@ -1,10 +1,10 @@
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { UserProfile, Church, Collaboration, CommunityEvent, ActiveTab } from '../../types';
-import { User } from 'firebase/auth';
+import { UserProfile, Church, Collaboration, CommunityEvent, ActiveTab, AppUser } from '../../types';
+import { User } from '@supabase/supabase-js';
 
 interface ProfileMainViewProps {
-  user: User;
+  user: AppUser | User;
   profile: UserProfile | null;
   memberships: any[];
   collaborations: Collaboration[];
@@ -48,13 +48,13 @@ export const ProfileMainView: React.FC<ProfileMainViewProps> = ({
 }) => {
   const { t, language } = useLanguage();
   const approvedMemberships = memberships.filter(m => m.status === 'approved');
-  const userDisplayName = profile?.displayName || user.displayName || user.email?.split('@')[0] || 'Membre ALLORA';
+  const userDisplayName = profile?.displayName || (user as any).displayName || user.email?.split('@')[0] || 'Membre ALLORA';
   const userProfession = profile?.profession || profile?.professionalTitle || t.profile.defaultProfession;
   const primaryChurchName = approvedMemberships.length > 0 ? approvedMemberships[0].churchName : t.profile.defaultChurch;
   const userLocation = profile?.location || t.profile.defaultLocation;
   const userBio = profile?.bio || t.profile.defaultBio;
   const userSkills = profile?.skills || [];
-  const userPhoto = (profile && profile.photoUrl !== undefined) ? (profile.photoUrl || '') : (user.photoURL || '');
+  const userPhoto = (profile && profile.photoUrl !== undefined) ? (profile.photoUrl || '') : ((user as any).photoURL || '');
   const userCover = profile?.coverPhotoUrl || '';
 
   // Local skills state for instant self-filling and management
@@ -413,19 +413,55 @@ export const ProfileMainView: React.FC<ProfileMainViewProps> = ({
           {/* Stats & Activity Section */}
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 rounded-3xl bg-[#19344A] text-white shadow-lg">
+              <div 
+                onClick={() => onNavigateTab('collaborations')}
+                className="p-5 rounded-3xl bg-[#19344A] text-white shadow-lg cursor-pointer hover:opacity-95 transition-all"
+                title={language === 'fr' ? 'Voir mes collaborations' : 'View my collaborations'}
+              >
                 <div className="text-3xl font-black mb-1">{collaborations.length}</div>
-                <div className="text-[10px] uppercase font-black tracking-widest opacity-60">{t.profile.statsCollabs}</div>
+                <div className="text-[10px] uppercase font-black tracking-widest opacity-60 flex items-center justify-between">
+                  <span>{t.profile.statsCollabs}</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                </div>
               </div>
-              <div className="p-5 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-sm">
+              <div 
+                onClick={() => onNavigateTab('events')}
+                className="p-5 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-sm cursor-pointer hover:border-[#67B7E8] transition-all"
+                title={language === 'fr' ? 'Voir mes événements' : 'View my events'}
+              >
                 <div className="text-3xl font-black text-[#111315] dark:text-white mb-1">{userEvents.length}</div>
-                <div className="text-[10px] uppercase font-black tracking-widest text-[#6F7B85]">{t.profile.statsEvents}</div>
+                <div className="text-[10px] uppercase font-black tracking-widest text-[#6F7B85] flex items-center justify-between">
+                  <span>{t.profile.statsEvents}</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                </div>
               </div>
             </div>
 
             <section className="p-6 rounded-3xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/10 shadow-sm">
               <h2 className="text-lg font-black text-[#111315] dark:text-white mb-4">{t.profile.activitiesTitle}</h2>
               <div className="space-y-2">
+                <button 
+                  onClick={() => onNavigateTab('collaborations')}
+                  className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-[#FAF9F6] dark:hover:bg-[#1D334D] transition-colors text-left group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#EAF6FD] dark:bg-[#67B7E8]/15 text-[#67B7E8] flex items-center justify-center">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-bold text-[#111315] dark:text-[#FAF9F6]/70 group-hover:text-[#67B7E8] transition-colors">
+                      {language === 'fr' ? 'Mes collaborations' : 'My Collaborations'}
+                    </span>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#6F7B85] dark:text-[#FAF9F6]/70 group-hover:translate-x-1 group-hover:text-[#67B7E8] transition-all">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+
                 <button 
                   onClick={() => onNavigateTab('needs')}
                   className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-[#FAF9F6] dark:hover:bg-[#1D334D] transition-colors text-left group cursor-pointer"

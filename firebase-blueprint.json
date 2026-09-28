@@ -21,14 +21,39 @@
         "churchIds": { "type": "array" },
         "photoUrl": { "type": "string", "maxLength": 1048576 },
         "coverPhotoUrl": { "type": "string", "maxLength": 1048576 },
+        "status": { "type": "string", "enum": ["active", "deactivated"] },
+        "isDeactivated": { "type": "boolean" },
+        "deactivatedAt": { "type": "string" },
+        "preferences": { "type": "object" },
+        "privacySettings": { "type": "object" },
+        "notificationPreferences": { "type": "object" },
         "createdAt": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
-      "required": ["userId", "email", "displayName"]
+      "required": ["userId", "email", "displayName", "createdAt", "updatedAt"]
+    },
+    "publicProfiles": {
+      "title": "Public Profile Projection",
+      "description": "Public non-sensitive projection of user profiles for safe public discovery",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoUrl": { "type": "string", "maxLength": 1048576 },
+        "professionalTitle": { "type": "string", "maxLength": 100 },
+        "profession": { "type": "string", "maxLength": 100 },
+        "location": { "type": "string", "maxLength": 150 },
+        "skills": { "type": "array" },
+        "bio": { "type": "string", "maxLength": 1000 },
+        "churchName": { "type": "string", "maxLength": 150 },
+        "availability": { "type": "string", "maxLength": 100 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "displayName", "updatedAt"]
     },
     "churches": {
       "title": "Church",
-      "description": "Church profile and community information",
+      "description": "Church profile and community information (joinCode isolated to churchSecrets)",
       "type": "object",
       "properties": {
         "churchId": { "type": "string", "maxLength": 128 },
@@ -52,7 +77,19 @@
         "createdAt": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
-      "required": ["churchId", "name", "city", "country", "joinCode", "leaderIds", "verificationStatus", "createdBy", "createdAt"]
+      "required": ["churchId", "name", "city", "country", "leaderIds", "verificationStatus", "createdBy", "createdAt"]
+    },
+    "churchSecrets": {
+      "title": "Church Secret Credentials",
+      "description": "Private church credentials such as join codes accessible only by leaders or server functions",
+      "type": "object",
+      "properties": {
+        "churchId": { "type": "string", "maxLength": 128 },
+        "joinCode": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["churchId", "joinCode", "createdAt", "updatedAt"]
     },
     "churchMembers": {
       "title": "Church Member",
@@ -182,6 +219,26 @@
       },
       "required": ["responseId", "opportunityId", "opportunityAuthorId", "responderId", "responderName", "message", "status", "createdAt", "updatedAt"]
     },
+    "contactRequests": {
+      "title": "Direct Contact Request",
+      "description": "Dedicated contact request between community members without abusing opportunityResponses",
+      "type": "object",
+      "properties": {
+        "requestId": { "type": "string", "maxLength": 128 },
+        "senderId": { "type": "string", "maxLength": 128 },
+        "senderName": { "type": "string", "maxLength": 100 },
+        "senderPhotoUrl": { "type": "string", "maxLength": 500 },
+        "recipientId": { "type": "string", "maxLength": 128 },
+        "recipientName": { "type": "string", "maxLength": 100 },
+        "message": { "type": "string", "maxLength": 3000 },
+        "contactEmail": { "type": "string", "maxLength": 256 },
+        "contactPhone": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined", "read", "cancelled"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["requestId", "senderId", "recipientId", "message", "status", "createdAt", "updatedAt"]
+    },
     "needs": {
       "title": "Need",
       "description": "Community need or request for help / resource",
@@ -253,7 +310,7 @@
     },
     "events": {
       "title": "Community Event",
-      "description": "Community or church gathering and service event for Phase 5",
+      "description": "Community or church gathering and service event",
       "type": "object",
       "properties": {
         "eventId": { "type": "string", "maxLength": 128 },
@@ -267,6 +324,7 @@
         "startAt": { "type": "string" },
         "endAt": { "type": "string" },
         "capacity": { "type": "number" },
+        "registeredCount": { "type": "number" },
         "visibility": { "type": "string", "enum": ["public", "church", "private"] },
         "status": { "type": "string", "enum": ["draft", "published", "cancelled", "completed"] },
         "createdAt": { "type": "string" },
@@ -310,10 +368,7 @@
         "resourceTitle": { "type": "string", "maxLength": 200 },
         "needOwnerName": { "type": "string", "maxLength": 100 },
         "resourceOwnerName": { "type": "string", "maxLength": 100 },
-        "churchName": { "type": "string", "maxLength": 150 },
-        "leadChurchId": { "type": "string", "maxLength": 128 },
-        "churchIds": { "type": "array" },
-        "leaderIds": { "type": "array" }
+        "churchName": { "type": "string", "maxLength": 150 }
       },
       "required": ["collaborationId", "needId", "resourceId", "needOwnerId", "resourceOwnerId", "status", "quantity", "message", "createdAt", "updatedAt"]
     },
@@ -334,16 +389,36 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["ticketId", "userId", "userEmail", "userName", "type", "subject", "message", "status", "createdAt", "updatedAt"]
+    },
+    "admins": {
+      "title": "Admin Role Entity",
+      "description": "System administrator document registry",
+      "type": "object",
+      "properties": {
+        "adminId": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "role": { "type": "string", "enum": ["superadmin", "moderator"] },
+        "grantedAt": { "type": "string" }
+      },
+      "required": ["adminId", "email", "role", "grantedAt"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/users" },
-      "description": "User profiles"
+      "description": "Private user profiles"
+    },
+    "/publicProfiles/{userId}": {
+      "schema": { "$ref": "#/entities/publicProfiles" },
+      "description": "Public non-sensitive user profile projections"
     },
     "/churches/{churchId}": {
       "schema": { "$ref": "#/entities/churches" },
       "description": "Church communities"
+    },
+    "/churchSecrets/{churchId}": {
+      "schema": { "$ref": "#/entities/churchSecrets" },
+      "description": "Church private credentials (join codes)"
     },
     "/churchMembers/{membershipId}": {
       "schema": { "$ref": "#/entities/churchMembers" },
@@ -360,6 +435,10 @@
     "/needs/{needId}/responses/{responseId}": {
       "schema": { "$ref": "#/entities/needResponses" },
       "description": "User responses/proposals to needs"
+    },
+    "/needResponses/{responseId}": {
+      "schema": { "$ref": "#/entities/needResponses" },
+      "description": "Root collection for need responses"
     },
     "/resources/{resourceId}": {
       "schema": { "$ref": "#/entities/resources" },
@@ -393,9 +472,17 @@
       "schema": { "$ref": "#/entities/opportunityResponses" },
       "description": "User applications and interest in opportunities"
     },
+    "/contactRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/contactRequests" },
+      "description": "Direct contact inquiries between users"
+    },
     "/supportTickets/{ticketId}": {
       "schema": { "$ref": "#/entities/supportTickets" },
       "description": "Support tickets and content reports"
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/admins" },
+      "description": "Admin users registry"
     }
   }
 }

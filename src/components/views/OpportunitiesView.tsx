@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Opportunity, OpportunityType, UserProfile, ChurchMember } from '../../types';
-import { fetchOpportunities, fetchOpportunitiesPaginated, fetchProfessionalProfiles } from '../../firebase/services/dataService';
+import { fetchOpportunities, fetchOpportunitiesPaginated, fetchProfessionalProfiles } from '../../supabase/services/dataService';
 import { OpportunityCard } from '../opportunities/OpportunityCard';
 import { OpportunityDetailModal } from '../opportunities/OpportunityDetailModal';
 import { CreateOpportunityModal } from '../opportunities/CreateOpportunityModal';

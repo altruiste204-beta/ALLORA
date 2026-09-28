@@ -12,7 +12,7 @@ import {
   createNeedResponse, 
   fetchNeedResponses, 
   updateNeedResponseStatus 
-} from '../../firebase/services/dataService';
+} from '../../supabase/services/dataService';
 import { findMatchingResourcesForNeed } from '../../utils/matching';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { EmptyState } from '../common/EmptyState';

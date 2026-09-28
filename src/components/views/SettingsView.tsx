@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { UserProfile, ActiveTab, ChurchMember } from '../../types';
-import { User } from 'firebase/auth';
+import { UserProfile, ActiveTab, ChurchMember, AppUser } from '../../types';
+import { User } from '@supabase/supabase-js';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import {
@@ -8,9 +8,9 @@ import {
   deleteAccountPermanently,
   sendPasswordReset,
   updateUserPassword
-} from '../../firebase/services/userService';
-import { leaveChurch, createSupportTicket } from '../../firebase/services/dataService';
-import { requestPushNotificationPermission } from '../../firebase/services/notificationService';
+} from '../../supabase/services/userService';
+import { leaveChurch, createSupportTicket } from '../../supabase/services/dataService';
+import { requestPushNotificationPermission } from '../../supabase/services/notificationService';
 import { useAuth } from '../../context/AuthContext';
 import { Sun, Moon, Laptop, Check } from 'lucide-react';
 
@@ -27,7 +27,7 @@ type SettingsSection =
   | 'manage';
 
 interface SettingsViewProps {
-  user: User;
+  user: AppUser | User;
   profile: UserProfile | null;
   memberships: ChurchMember[];
   onRefreshMemberships?: () => Promise<void>;
@@ -181,7 +181,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setIsDeactivating(true);
       setDeactivateError(null);
       try {
-        await deactivateAccount(user.uid);
+        const uid = user.id || (user as any).uid;
+        await deactivateAccount(uid);
         await onUpdateProfile({
           isDeactivated: true,
           status: 'deactivated',
@@ -204,7 +205,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setIsDeleting(true);
       setDeleteError(null);
       try {
-        await deleteAccountPermanently(user.uid);
+        const uid = user.id || (user as any).uid;
+        await deleteAccountPermanently(uid);
         onSignOut();
       } catch (err) {
         setDeleteError(err instanceof Error ? err.message : (t.settings.errorDelete));
@@ -377,7 +379,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       }
     };
 
-    const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+    const isGoogleUser = Boolean(
+      (user as any).providerData?.some((p: any) => p?.providerId === 'google.com') ||
+      (user as any).app_metadata?.provider === 'google' ||
+      (user as any).identities?.some((i: any) => i?.provider === 'google')
+    );
 
     return (
       <div className="animate-in slide-in-from-right duration-300">
@@ -763,7 +769,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setLeavingChurchId(churchId);
       setChurchActionMsg(null);
       try {
-        const res = await leaveChurch(churchId, user.uid);
+        const userId = (user as any).uid || (user as any).id;
+        const res = await leaveChurch(churchId, userId);
         setChurchActionMsg({ type: 'success', text: res.message });
         if (onRefreshMemberships) await onRefreshMemberships();
       } catch (err) {
@@ -891,8 +898,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       setTicketSubmitting(true);
       try {
+        const userId = (user as any).uid || (user as any).id;
         const id = await createSupportTicket({
-          userId: user.uid,
+          userId,
           userEmail: user.email || '',
           userName: profile?.displayName || 'Membre ALLORA',
           type: ticketType,
@@ -1199,7 +1207,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="bg-white dark:bg-[#19344A] rounded-3xl border border-[#E8E4D9] dark:border-[#67B7E8]/10 overflow-hidden shadow-sm">
             <SettingRow 
               title={t.settings.languageTitle} 
-              subtitle={language === 'fr' ? 'Français' : language === 'en' ? 'English' : 'Swahili'} 
+              subtitle={language === 'fr' ? 'Français' : 'English'} 
               onClick={() => setCurrentSection('preferences')} 
               icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>} 
               color="bg-[#EAF6FD] dark:bg-[#67B7E8]/15" 
@@ -1323,7 +1331,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <SettingRow 
               title={language === 'fr' ? 'Mes collaborations' : 'My Collaborations'} 
               subtitle={language === 'fr' ? 'Projets communs & entraide active' : 'Active projects'} 
-              onClick={() => { onClose(); onNavigateTab('community'); }} 
+              onClick={() => { onClose(); onNavigateTab('collaborations'); }} 
               icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>} 
               color="bg-[#EAF6FD] dark:bg-[#67B7E8]/15" 
               iconColor="text-[#67B7E8]"

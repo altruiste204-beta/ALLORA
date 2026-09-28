@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Opportunity, OpportunityType, OpportunityVisibility, ChurchMember, UserProfile } from '../../types';
-import { createOpportunity } from '../../firebase/services/dataService';
+import { createOpportunity } from '../../supabase/services/dataService';
 import { X, Briefcase, HeartHandshake, UserCheck, Search, Tag, Building2, User, Globe, Lock, AlertCircle, Plus } from 'lucide-react';
 
 interface CreateOpportunityModalProps {

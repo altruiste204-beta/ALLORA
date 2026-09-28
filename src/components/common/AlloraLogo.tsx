@@ -49,7 +49,9 @@ export const AlloraLogo: React.FC<AlloraLogoProps> = ({
       <div 
         className={`relative shrink-0 rounded-2xl overflow-hidden transition-all duration-300 ${
           withContainer 
-            ? 'shadow-xs border border-[#E8E4D9]/80 dark:border-[#67B7E8]/10 bg-[#fefefe]' 
+            ? variant === 'white'
+              ? 'shadow-xs border border-white/20 bg-white/10 backdrop-blur-xs'
+              : 'shadow-xs border border-[#E8E4D9]/80 dark:border-[#67B7E8]/10 bg-[#fefefe]' 
             : ''
         } ${animated ? 'hover:scale-105 active:scale-95' : ''}`}
         style={{ width: currentSize.symbol, height: currentSize.symbol }}

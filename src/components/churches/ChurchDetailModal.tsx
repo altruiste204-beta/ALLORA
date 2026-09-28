@@ -8,8 +8,8 @@ import {
   updateMemberRole,
   leaveChurch,
   joinChurchWithCode
-} from '../../firebase/services/dataService';
-import { getHumanErrorMessage } from '../../firebase/errors';
+} from '../../supabase/services/dataService';
+import { getHumanErrorMessage } from '../../supabase/errors';
 import { Church, ChurchMember } from '../../types';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 

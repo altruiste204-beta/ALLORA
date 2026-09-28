@@ -1,4 +1,20 @@
 export type VerificationStatus = 'pending' | 'verified' | 'rejected';
+
+export interface AppUser {
+  id: string;
+  uid: string;
+  email?: string;
+  displayName?: string;
+  photoURL?: string;
+  app_metadata?: any;
+  user_metadata?: any;
+  identities?: any[];
+  providerData?: any[];
+  aud?: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
+}
 export type NeedStatus = 'open' | 'partially_fulfilled' | 'fulfilled' | 'cancelled' | 'expired';
 export type NeedUrgency = 'low' | 'normal' | 'high' | 'urgent';
 export type NeedVisibility = 'public' | 'church' | 'private';
@@ -80,7 +96,7 @@ export interface UserProfile {
 
   // Preferences
   preferences?: {
-    language?: 'fr' | 'en' | 'sw';
+    language?: 'fr' | 'en';
     theme?: 'light' | 'dark' | 'system';
   };
 
@@ -350,4 +366,42 @@ export interface Collaboration {
   leaderIds?: string[];
 }
 
-export type ActiveTab = 'home' | 'churches' | 'events' | 'opportunities' | 'community' | 'profile' | 'needs' | 'resources' | 'notifications' | 'mentions-legales' | 'cgu' | 'confidentialite' | 'faq' | 'aide' | 'a-propos';
+export type ContactRequestStatus = 'pending' | 'accepted' | 'declined' | 'read' | 'cancelled';
+
+export interface ContactRequest {
+  requestId: string;
+  senderId: string;
+  senderName?: string;
+  senderPhotoUrl?: string;
+  recipientId: string;
+  recipientName?: string;
+  message: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  status: ContactRequestStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChurchSecret {
+  churchId: string;
+  joinCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublicProfile {
+  userId: string;
+  displayName: string;
+  photoUrl?: string;
+  professionalTitle?: string;
+  profession?: string;
+  location?: string;
+  skills?: string[];
+  bio?: string;
+  churchName?: string;
+  availability?: string;
+  updatedAt: string;
+}
+
+export type ActiveTab = 'home' | 'churches' | 'events' | 'opportunities' | 'community' | 'profile' | 'needs' | 'resources' | 'collaborations' | 'notifications' | 'mentions-legales' | 'cgu' | 'confidentialite' | 'faq' | 'aide' | 'a-propos';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Opportunity, UserProfile } from '../../types';
-import { createOpportunityResponse } from '../../firebase/services/dataService';
+import { createOpportunityResponse } from '../../supabase/services/dataService';
 import { X, Send, User, Mail, Phone, Tag, CheckCircle2, AlertCircle, Lightbulb } from 'lucide-react';
 
 interface RespondOpportunityModalProps {

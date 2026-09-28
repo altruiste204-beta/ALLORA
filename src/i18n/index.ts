@@ -388,7 +388,6 @@ export interface TranslationStrings {
     languageTitle: string;
     french: string;
     english: string;
-    swahili: string;
     displayPrefs: string;
     displayPrefsDesc: string;
     myChurchesTitle: string;
@@ -1092,7 +1091,6 @@ export const fr: TranslationStrings = {
     languageTitle: 'Langue',
     french: 'Français',
     english: 'English',
-    swahili: 'Swahili',
     displayPrefs: 'Préférences d\'affichage',
     displayPrefsDesc: 'Choisissez un thème clair, sombre ou synchronisé avec le système.',
     myChurchesTitle: 'Mes églises',
@@ -1796,7 +1794,6 @@ export const en: TranslationStrings = {
     languageTitle: 'Language',
     french: 'Français',
     english: 'English',
-    swahili: 'Swahili',
     displayPrefs: 'Display preferences',
     displayPrefsDesc: 'Choose light, dark or system-synchronized theme.',
     myChurchesTitle: 'My churches',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EmptyState } from '../common/EmptyState';
 import { LoadingSpinner } from '../common/LoadingSpinner';
-import { fetchChurches } from '../../firebase/services/dataService';
+import { fetchChurches } from '../../supabase/services/dataService';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Church } from '../../types';

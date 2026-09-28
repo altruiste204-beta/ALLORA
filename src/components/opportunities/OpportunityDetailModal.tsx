@@ -5,7 +5,7 @@ import {
   updateOpportunityResponseStatus, 
   updateOpportunity, 
   deleteOpportunity 
-} from '../../firebase/services/dataService';
+} from '../../supabase/services/dataService';
 import { RespondOpportunityModal } from './RespondOpportunityModal';
 import { 
   X, Briefcase, HeartHandshake, UserCheck, Search, MapPin, Calendar, 

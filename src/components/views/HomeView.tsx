@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { fetchNeeds, fetchResources, fetchEvents, fetchChurches, fetchUserMemberships } from '../../firebase/services/dataService';
+import { fetchNeeds, fetchResources, fetchEvents, fetchChurches, fetchUserMemberships } from '../../supabase/services/dataService';
 import { Need, Resource, CommunityEvent, Church, ChurchMember, ActiveTab } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';

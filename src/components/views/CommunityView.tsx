@@ -10,7 +10,7 @@ import {
   fetchComments, 
   createComment,
   deletePost
-} from '../../firebase/services/dataService';
+} from '../../supabase/services/dataService';
 
 export const CommunityView: React.FC = () => {
   const { user, profile, memberships } = useAuth();

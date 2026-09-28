@@ -12,7 +12,7 @@ import {
   registerForEvent,
   cancelEventParticipation,
   fetchUserMemberships
-} from '../../firebase/services/dataService';
+} from '../../supabase/services/dataService';
 import { CommunityEvent, EventParticipant, ChurchMember, EventVisibility, EventStatus, OrganizerType } from '../../types';
 
 interface EventsViewProps {

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { markAllNotificationsAsRead } from '../../firebase/services/dataService';
+import { markAllNotificationsAsRead } from '../../supabase/services/dataService';
 import { ChurchNotification } from '../../types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -12,8 +12,9 @@ export const NotificationsView: React.FC = () => {
 
   useEffect(() => {
     if (user) {
+      const uid = user.id || (user as any).uid;
       // Mark all as read when opening the view
-      markAllNotificationsAsRead(user.uid).then(() => {
+      markAllNotificationsAsRead(uid).then(() => {
         refreshNotifications();
       });
     }

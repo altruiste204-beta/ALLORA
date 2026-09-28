@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserProfile } from '../../types';
-import { createOpportunityResponse } from '../../firebase/services/dataService';
+import { createContactRequest } from '../../supabase/services/dataService';
 import { X, User, Tag, MapPin, Calendar, Briefcase, Mail, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface ProfessionalProfileModalProps {
@@ -26,7 +26,7 @@ export const ProfessionalProfileModal: React.FC<ProfessionalProfileModalProps> =
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isOwner = currentUser?.uid === profile.userId;
+  const isOwner = (currentUser?.id || currentUser?.uid) === profile.userId;
   const canShowLocation = isOwner || profile.privacySettings?.locationVisibility !== false;
   const canShowSkills = isOwner || profile.privacySettings?.skillsVisibility !== false;
   const canShowProfession = isOwner || profile.privacySettings?.professionalInfoVisibility !== 'private';
@@ -46,23 +46,16 @@ export const ProfessionalProfileModal: React.FC<ProfessionalProfileModalProps> =
     setError(null);
 
     try {
-      // Create a response proposal linking the two users
-      await createOpportunityResponse(
-        {
-          opportunityId: `profile_contact_${profile.userId}`,
-          opportunityTitle: `Contact direct : ${profile.displayName}`,
-          opportunityAuthorId: profile.userId,
-          responderId: currentUser.uid,
-          responderName: currentProfile?.displayName || currentUser.displayName || 'Membre ALLORA',
-          responderPhotoUrl: currentProfile?.photoUrl || currentUser.photoURL || undefined,
-          responderTitle: currentProfile?.professionalTitle || undefined,
-          message: message.trim(),
-          skills: currentProfile?.skills || [],
-          contactEmail: contactEmail.trim() || undefined,
-          contactPhone: contactPhone.trim() || undefined
-        },
-        `Profil Professionnel de ${profile.displayName}`,
-        profile.userId
+      // Create a dedicated direct contact request linking the two users
+      await createContactRequest(
+        currentUser.uid,
+        profile.userId,
+        message.trim(),
+        contactEmail.trim() || undefined,
+        contactPhone.trim() || undefined,
+        currentProfile?.displayName || currentUser.displayName || 'Membre ALLORA',
+        currentProfile?.photoUrl || currentUser.photoURL || undefined,
+        profile.displayName
       );
 
       setSuccess(true);

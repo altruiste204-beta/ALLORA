@@ -4,9 +4,9 @@ import { useLanguage } from '../../context/LanguageContext';
 import { 
   fetchCollaborations, 
   fetchEvents
-} from '../../firebase/services/dataService';
-import { saveUserProfile, updateUserFields } from '../../firebase/services/userService';
-import { getHumanErrorMessage } from '../../firebase/errors';
+} from '../../supabase/services/dataService';
+import { saveUserProfile, updateUserFields } from '../../supabase/services/userService';
+import { getHumanErrorMessage } from '../../supabase/errors';
 import { Collaboration, ActiveTab, CommunityEvent, UserProfile } from '../../types';
 import { compressAndResizeImage } from '../../utils/imageUtils';
 import { ProfileMainView } from './ProfileMainView';

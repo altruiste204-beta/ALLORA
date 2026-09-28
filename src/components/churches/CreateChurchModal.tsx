@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useAuth } from '../../context/AuthContext';
-import { createChurch } from '../../firebase/services/dataService';
-import { getHumanErrorMessage } from '../../firebase/errors';
+import { createChurch } from '../../supabase/services/dataService';
+import { getHumanErrorMessage } from '../../supabase/errors';
 
 interface CreateChurchModalProps {
   isOpen: boolean;
