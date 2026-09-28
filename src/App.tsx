@@ -20,6 +20,12 @@ import { ResourcesView } from './components/views/ResourcesView';
 import { CommunityView } from './components/views/CommunityView';
 import { OpportunitiesView } from './components/views/OpportunitiesView';
 import { NotificationsView } from './components/views/NotificationsView';
+import { AboutView } from './components/views/AboutView';
+import { AideView } from './components/views/AideView';
+import { FaqView } from './components/views/FaqView';
+import { MentionsLegalesView } from './components/views/MentionsLegalesView';
+import { CguView } from './components/views/CguView';
+import { ConfidentialiteView } from './components/views/ConfidentialiteView';
 import { AuthModal } from './components/auth/AuthModal';
 import { WelcomeAuthScreen } from './components/auth/WelcomeAuthScreen';
 import { ActionSheetModal } from './components/action/ActionSheetModal';
@@ -225,6 +231,30 @@ function MainApp() {
 
         {activeTab === 'notifications' && (
           <NotificationsView />
+        )}
+
+        {activeTab === 'a-propos' && (
+          <AboutView onNavigateTab={(tab) => setActiveTab(tab)} />
+        )}
+
+        {activeTab === 'aide' && (
+          <AideView onNavigateTab={(tab) => setActiveTab(tab)} />
+        )}
+
+        {activeTab === 'faq' && (
+          <FaqView onNavigateTab={(tab) => setActiveTab(tab)} />
+        )}
+
+        {activeTab === 'mentions-legales' && (
+          <MentionsLegalesView onNavigateTab={(tab) => setActiveTab(tab)} />
+        )}
+
+        {activeTab === 'cgu' && (
+          <CguView onNavigateTab={(tab) => setActiveTab(tab)} />
+        )}
+
+        {activeTab === 'confidentialite' && (
+          <ConfidentialiteView onNavigateTab={(tab) => setActiveTab(tab)} />
         )}
       </main>
 

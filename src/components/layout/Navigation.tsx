@@ -23,7 +23,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   onToggleMenu: _onToggleMenu,
   onOpenAuth,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user, profile, memberships, notifications, signOut } = useAuth();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
@@ -561,6 +561,42 @@ export const Navigation: React.FC<NavigationProps> = ({
               </button>
             );
           })}
+
+          {/* Institutional / Legal Pages Section */}
+          <div className="pt-4 mt-4 border-t border-[#E8E4D9] dark:border-[#67B7E8]/10 space-y-1">
+            <div className="px-2 pb-1 text-[9px] font-black uppercase tracking-widest text-[#6F7B85] dark:text-[#FAF9F6]/40">
+              {language === 'fr' ? 'Informations & Pages Légales' : 'Information & Legal'}
+            </div>
+            {[
+              { id: 'a-propos' as ActiveTab, label: language === 'fr' ? 'À propos d\'ALLORA' : 'About ALLORA' },
+              { id: 'aide' as ActiveTab, label: language === 'fr' ? 'Centre d\'aide' : 'Help Center' },
+              { id: 'faq' as ActiveTab, label: 'FAQ' },
+              { id: 'mentions-legales' as ActiveTab, label: language === 'fr' ? 'Mentions légales' : 'Legal Notice' },
+              { id: 'cgu' as ActiveTab, label: 'CGU' },
+              { id: 'confidentialite' as ActiveTab, label: language === 'fr' ? 'Politique de confidentialité' : 'Privacy Policy' },
+            ].map((page) => {
+              const isActive = activeTab === page.id;
+              return (
+                <button
+                  key={page.id}
+                  onClick={() => {
+                    onTabChange(page.id);
+                    onCloseMenu();
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center justify-between gap-2 text-xs font-bold transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-[#EAF6FD] dark:bg-[#67B7E8]/15 text-[#67B7E8]'
+                      : 'text-[#6F7B85] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-[#111315]/50 hover:text-[#19344A] dark:hover:text-white'
+                  }`}
+                >
+                  <span>{page.label}</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="opacity-40">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Drawer Bottom Footer */}

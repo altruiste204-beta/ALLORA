@@ -383,8 +383,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
             placeholder={
               language === 'fr'
                 ? 'Rechercher une ressource, un événement, un besoin...'
-                : language === 'sw'
-                ? 'Tafuta rasilimali, tukio, hitaji...'
                 : 'Search resources, events, needs...'
             }
             className="w-full pl-11 pr-10 py-3.5 rounded-2xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/15 text-sm text-[#111315] dark:text-[#FAF9F6] placeholder-[#6F7B85]/60 dark:placeholder-[#FAF9F6]/40 shadow-xs focus:outline-none focus:border-[#67B7E8] focus:ring-2 focus:ring-[#67B7E8]/20 transition-all font-medium"

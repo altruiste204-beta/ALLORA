@@ -350,4 +350,4 @@ export interface Collaboration {
   leaderIds?: string[];
 }
 
-export type ActiveTab = 'home' | 'churches' | 'events' | 'opportunities' | 'community' | 'profile' | 'needs' | 'resources' | 'notifications';
+export type ActiveTab = 'home' | 'churches' | 'events' | 'opportunities' | 'community' | 'profile' | 'needs' | 'resources' | 'notifications' | 'mentions-legales' | 'cgu' | 'confidentialite' | 'faq' | 'aide' | 'a-propos';

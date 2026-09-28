@@ -44,7 +44,6 @@ export const WelcomeAuthScreen: React.FC<WelcomeAuthScreenProps> = ({
   const languages: { code: Language; label: string }[] = [
     { code: 'fr', label: 'Français' },
     { code: 'en', label: 'English' },
-    { code: 'sw', label: 'Swahili' },
   ];
 
   const handleGoogleSignIn = async () => {

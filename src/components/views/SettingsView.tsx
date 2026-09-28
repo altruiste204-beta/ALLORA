@@ -723,35 +723,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 )}
               </button>
-
-              {/* 3. Swahili (Kiswahili) */}
-              <button 
-                onClick={() => {
-                  setLanguage('sw');
-                  onUpdateProfile({ preferences: { ...(profile?.preferences || {}), language: 'sw' } });
-                }}
-                className={`w-full flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#19344A] border transition-all cursor-pointer ${language === 'sw' ? 'border-[#67B7E8] ring-2 ring-[#67B7E8]/20 shadow-xs' : 'border-[#E8E4D9] dark:border-[#67B7E8]/10'}`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-5 rounded overflow-hidden shadow-xs shrink-0 border border-[#E8E4D9] dark:border-[#67B7E8]/20">
-                    <svg viewBox="0 0 60 40" className="w-full h-full">
-                      <polygon points="0,0 60,0 0,40" fill="#1EB53A" />
-                      <polygon points="60,0 60,40 0,40" fill="#00A3DD" />
-                      <polygon points="0,40 20,40 60,13.3 60,0 40,0 0,26.7" fill="#FCD116" />
-                      <polygon points="0,40 14,40 60,9.3 60,0 46,0 0,30.7" fill="#000000" />
-                    </svg>
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-[#19344A] dark:text-white">Swahili</p>
-                    <p className="text-[11px] text-[#19344A] dark:text-[#FAF9F6]/70">{t.settings.completeTranslation}</p>
-                  </div>
-                </div>
-                {language === 'sw' && (
-                  <div className="w-6 h-6 rounded-full bg-[#67B7E8] flex items-center justify-center text-white">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
-                  </div>
-                )}
-              </button>
             </div>
           </section>
 

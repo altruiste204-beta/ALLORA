@@ -1,14 +1,13 @@
 import React, { createContext, useContext, useState } from 'react';
-import { TranslationStrings, fr, en, sw } from '../i18n';
+import { TranslationStrings, fr, en } from '../i18n';
 
-export type Language = 'fr' | 'en' | 'sw';
+export type Language = 'fr' | 'en';
 
-const SUPPORTED_LANGUAGES: Language[] = ['fr', 'en', 'sw'];
+const SUPPORTED_LANGUAGES: Language[] = ['fr', 'en'];
 
 const translations: Record<Language, TranslationStrings> = {
   fr,
   en,
-  sw,
 };
 
 interface LanguageContextType {

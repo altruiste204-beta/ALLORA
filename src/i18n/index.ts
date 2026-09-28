@@ -2112,5 +2112,3 @@ export const en: TranslationStrings = {
 
 export const i18n = fr;
 
-export { sw } from './sw';
-
