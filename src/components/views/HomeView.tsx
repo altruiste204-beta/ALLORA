@@ -6,9 +6,9 @@ import { useLanguage } from '../../context/LanguageContext';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 
 // Asset images
-import heroBannerImg1 from '../../assets/images/allora_hero_landscape_1790246440074.jpg';
-import heroBannerImg2 from '../../assets/images/allora_welcome_hero_1790244085401.jpg';
-import heroBannerImg3 from '../../assets/images/allora_community_landscape_1790282534868.jpg';
+import heroBannerImg1 from '../../assets/images/allora_hero_mountain_1790682458920.jpg';
+import heroBannerImg2 from '../../assets/images/allora_church_light_1790682472522.jpg';
+import heroBannerImg3 from '../../assets/images/allora_community_service_1790682485769.jpg';
 
 const HERO_IMAGES = [heroBannerImg1, heroBannerImg2, heroBannerImg3];
 
@@ -687,6 +687,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             key={img}
             src={img}
             alt={`ALLORA Landscape ${idx + 1}`}
+            referrerPolicy="no-referrer"
             className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 ease-in-out ${
               idx === currentImageIndex ? 'opacity-100 scale-[1.02]' : 'opacity-0 scale-100'
             }`}

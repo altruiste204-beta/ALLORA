@@ -32,6 +32,9 @@ export function getHumanErrorMessage(error: unknown): string {
   if (message.includes('JWT expired') || message.includes('session_not_found')) {
     return 'Votre session a expiré. Veuillez vous reconnecter.';
   }
+  if (message.includes('gen_random_bytes') || (message.includes('church_members') && message.includes('null value in column "id"'))) {
+    return 'Une mise à niveau de la base de données est requise : veuillez exécuter la migration supabase/migrations/20260929020000_fix_create_church.sql dans Supabase SQL Editor.';
+  }
   if (isNetworkOrOfflineError(error)) {
     return 'Connexion réseau instable. Vérifiez votre connexion internet.';
   }

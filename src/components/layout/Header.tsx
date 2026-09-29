@@ -2,6 +2,8 @@ import React from 'react';
 import { AlloraLogo } from '../common/AlloraLogo';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
+import { Sun, Moon, Globe } from 'lucide-react';
 
 interface HeaderProps {
   onOpenAuth: () => void;
@@ -21,7 +23,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleMenu
 }) => {
   const { user, profile, notifications, isOnline } = useAuth();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
+  const { setTheme, isDark } = useTheme();
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -37,15 +40,43 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right Actions: Notifications Bell, Profile Avatar, and Hamburger Menu Button (Tablet / PC) */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {!isOnline && (
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FAF9F6] dark:bg-[#111315]/50 text-[#6F7B85] text-[10px] font-bold border border-[#E8E4D9] dark:border-transparent" title={t.common.offlineTitle}>
               <span>{t.common.offline}</span>
             </div>
           )}
 
+          {/* Quick theme and language switches for mobile (displayed on the mobile topNav bar) */}
+          <div className="flex md:hidden items-center gap-0.5">
+            {/* Theme mode toggle */}
+            <button
+              onClick={() => setTheme(isDark ? 'light' : 'dark')}
+              className="p-2 rounded-xl text-[#6F7B85] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-[#19344A] hover:text-[#19344A] dark:hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+              aria-label={isDark ? 'Passer au mode clair' : 'Passer au mode sombre'}
+              title={isDark ? 'Mode clair' : 'Mode sombre'}
+            >
+              {isDark ? (
+                <Sun className="w-5 h-5 text-amber-400" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </button>
+
+            {/* Language toggle */}
+            <button
+              onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')}
+              className="p-2 rounded-xl text-[#6F7B85] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-[#19344A] hover:text-[#19344A] dark:hover:text-white transition-colors cursor-pointer flex items-center gap-0.5"
+              aria-label={language === 'fr' ? 'Switch to English' : 'Passer en français'}
+              title={language === 'fr' ? 'English' : 'Français'}
+            >
+              <Globe className="w-5 h-5" />
+              <span className="text-[10px] font-black uppercase tracking-tight">{language}</span>
+            </button>
+          </div>
+
           {user ? (
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {/* Notification Bell with Real Badge */}
               <button
                 onClick={onOpenNotifications}

@@ -176,7 +176,7 @@ function MainApp() {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 pb-24 md:pb-12">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 pb-32 md:pb-12">
         {activeTab === 'home' && (
           <HomeView
             onOpenActionSheet={() => setIsActionSheetOpen(true)}

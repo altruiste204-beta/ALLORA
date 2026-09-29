@@ -109,51 +109,41 @@ export const Navigation: React.FC<NavigationProps> = ({
   return (
     <>
       {/* ---------------------------------------------------- */}
+      {/* FLOATING INDEPENDENT ACTION BUTTON (+) WITH LUMINOUS HALO */}
+      {/* ---------------------------------------------------- */}
+      <div 
+        className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+62px)] left-1/2 -translate-x-1/2 z-30 md:hidden flex items-center justify-center pointer-events-none"
+      >
+        {/* Subtle, abstract luminous halo aura */}
+        <div 
+          className="absolute -inset-2.5 rounded-full bg-gradient-to-tr from-[#67B7E8]/40 via-[#A6DBF7]/25 to-[#67B7E8]/50 blur-lg opacity-75 animate-pulse" 
+          aria-hidden="true" 
+        />
+        <div 
+          className="absolute -inset-1 rounded-full bg-[#67B7E8]/25 blur-sm opacity-90" 
+          aria-hidden="true" 
+        />
+
+        {/* Action Button */}
+        <button
+          onClick={onOpenActionSheet}
+          className="relative pointer-events-auto w-12 h-12 rounded-full bg-[#67B7E8] hover:bg-[#52a5d9] active:scale-95 text-white flex items-center justify-center shadow-[0_4px_16px_rgba(103,183,232,0.4)] transition-all cursor-pointer border-2 border-white dark:border-[#111315]"
+          aria-label={t.nav.createAction}
+          title={t.nav.createAction}
+        >
+          <Plus className="w-6 h-6 stroke-[2.5]" />
+        </button>
+      </div>
+
+      {/* ---------------------------------------------------- */}
       {/* MOBILE BOTTOM NAVIGATION BAR (Sticky at bottom on md:hidden) */}
       {/* ---------------------------------------------------- */}
       <nav 
         className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-white/95 dark:bg-[#111315]/95 backdrop-blur-md border-t border-[#E8E4D9] dark:border-[#67B7E8]/15 px-2 pb-[env(safe-area-inset-bottom,0px)] pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] transition-colors"
         aria-label="Navigation principale mobile"
       >
-        <div className="max-w-md mx-auto flex items-center justify-around relative">
-          {/* First 2 items */}
-          {mobileNavItems.slice(0, 2).map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.tab;
-            return (
-              <button
-                key={item.tab}
-                onClick={() => onTabChange(item.tab)}
-                className={`flex flex-col items-center justify-center flex-1 py-1 px-1 transition-all cursor-pointer ${
-                  isActive
-                    ? 'text-[#67B7E8] font-bold'
-                    : 'text-[#6F7B85] dark:text-[#FAF9F6]/60 hover:text-[#19344A] dark:hover:text-white'
-                }`}
-              >
-                <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#67B7E8]/10' : ''}`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] mt-0.5 tracking-tight truncate max-w-[64px]">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-
-          {/* Central Action Button (+) */}
-          <div className="flex-1 flex justify-center -mt-5">
-            <button
-              onClick={onOpenActionSheet}
-              className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#19344A] via-[#1E4362] to-[#67B7E8] text-white flex items-center justify-center shadow-lg shadow-[#67B7E8]/30 hover:scale-105 active:scale-95 transition-all cursor-pointer border-2 border-white dark:border-[#111315]"
-              aria-label={t.nav.createAction}
-              title={t.nav.createAction}
-            >
-              <Plus className="w-6 h-6 stroke-[2.5]" />
-            </button>
-          </div>
-
-          {/* Remaining 3 items */}
-          {mobileNavItems.slice(2).map((item) => {
+        <div className="max-w-md mx-auto flex items-center justify-around">
+          {mobileNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.tab;
             return (

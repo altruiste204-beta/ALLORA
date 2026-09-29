@@ -1424,14 +1424,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             />
           </div>
         </section>
-
-        <p className="text-center text-[10px] font-black uppercase tracking-widest text-[#6F7B85] dark:text-[#FAF9F6]/50 flex items-center justify-center gap-1.5">
-          <span className="font-['Oswald'] text-xs font-bold text-[#19344A] dark:text-white tracking-wider">ALLORA</span>
-          <span>•</span>
-          <span>{t.brand.tagline}</span>
-          <span>•</span>
-          <span>v1.0.0</span>
-        </p>
       </div>
 
       {/* Modal de Confirmation de Déconnexion fonctionnel */}

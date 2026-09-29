@@ -215,7 +215,7 @@ BEGIN
 
   -- Generate a non-guessable, unique human-friendly code.
   LOOP
-    v_join_code := 'ALLORA-' || upper(substr(encode(gen_random_bytes(5), 'hex'), 1, 5));
+    v_join_code := 'ALLORA-' || upper(substr(md5(random()::text || clock_timestamp()::text || v_uid::text), 1, 6));
     EXIT WHEN NOT EXISTS (
       SELECT 1 FROM public.church_secrets WHERE join_code = v_join_code
     );
@@ -249,7 +249,14 @@ BEGIN
     COALESCE(v_name, 'Responsable'), COALESCE(v_email, ''),
     (SELECT photo_url FROM public.profiles WHERE id = v_uid),
     'OWNER', 'approved'
-  );
+  )
+  ON CONFLICT (church_id, user_id) DO UPDATE SET
+    role = 'OWNER',
+    status = 'approved',
+    church_name = EXCLUDED.church_name,
+    display_name = COALESCE(EXCLUDED.display_name, public.church_members.display_name),
+    email = COALESCE(EXCLUDED.email, public.church_members.email),
+    updated_at = NOW();
 
   RETURN jsonb_build_object(
     'success', true,

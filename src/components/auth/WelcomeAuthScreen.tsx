@@ -4,7 +4,7 @@ import { getHumanErrorMessage } from '../../supabase/errors';
 import { Footer } from '../layout/Footer';
 import { AlloraLogo } from '../common/AlloraLogo';
 import { useLanguage, Language } from '../../context/LanguageContext';
-import welcomeHeroBg from '../../assets/images/allora_welcome_hero_1790244085401.jpg';
+import welcomeHeroBg from '../../assets/images/allora_hero_mountain_1790682458920.jpg';
 
 interface WelcomeAuthScreenProps {
   initialMode?: 'signin' | 'signup';
@@ -165,6 +165,7 @@ export const WelcomeAuthScreen: React.FC<WelcomeAuthScreenProps> = ({
         <img
           src={welcomeHeroBg}
           alt={t.brand.tagline}
+          referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105"
         />
         <div className="absolute inset-0 bg-[#111315]/80" />
