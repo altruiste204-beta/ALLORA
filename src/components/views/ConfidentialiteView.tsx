@@ -72,8 +72,8 @@ export const ConfidentialiteView: React.FC<ConfidentialiteViewProps> = ({ onNavi
             </h2>
             <p>
               {isFr
-                ? 'Toutes les données sont stockées de manière sécurisée via l\'infrastructure Google Cloud / Firebase Firestore avec des règles de sécurité strictes garantissant l\'accès aux seuls utilisateurs autorisés.'
-                : 'All data is stored securely via Google Cloud / Firebase Firestore infrastructure with strict security rules ensuring access only to authorized users.'}
+                ? 'Toutes les données sont stockées de manière sécurisée via l\'infrastructure Supabase / PostgreSQL avec des politiques RLS strictes garantissant l\'accès aux seuls utilisateurs autorisés.'
+                : 'All data is stored securely via Supabase / PostgreSQL infrastructure with strict Row Level Security policies ensuring access only to authorized users.'}
             </p>
           </section>
 

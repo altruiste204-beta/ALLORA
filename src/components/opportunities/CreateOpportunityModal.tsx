@@ -1,92 +1,68 @@
 import React, { useState } from 'react';
-import { Opportunity, OpportunityType, OpportunityVisibility, ChurchMember, UserProfile } from '../../types';
+import { Opportunity, OpportunityType, UserProfile, ChurchMember, OpportunityVisibility } from '../../types';
 import { createOpportunity } from '../../supabase/services/dataService';
-import { X, Briefcase, HeartHandshake, UserCheck, Search, Tag, Building2, User, Globe, Lock, AlertCircle, Plus } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
+import { X, Plus, AlertCircle, Briefcase, Church, MapPin, Tag, Clock } from 'lucide-react';
 
 interface CreateOpportunityModalProps {
   currentUser: any;
   userProfile: UserProfile | null;
   memberships: ChurchMember[];
-  initialMode?: 'propose' | 'search';
+  initialMode: 'propose' | 'search' | 'propose_service' | 'search_need';
   onClose: () => void;
   onSuccess: () => void;
 }
-
-const OPPORTUNITY_CATEGORIES = [
-  'Graphisme & Vidéo',
-  'Musique & Culte',
-  'Tech & Informatique',
-  'Gestion & Comptabilité',
-  'Communication & Rédaction',
-  'Bâtiment & Logistique',
-  'Social & Entraide',
-  'Enseignement & Formation',
-  'Autre'
-];
-
-const SKILL_SUGGESTIONS = [
-  'Vidéaste', 'Graphiste', 'Comptable', 'Développeur', 'Musicien',
-  'Sonorisation', 'Chauffeur', 'Community Manager', 'Traducteur',
-  'Électricien', 'Cuisinier', 'Enseignant', 'Photographe'
-];
 
 export const CreateOpportunityModal: React.FC<CreateOpportunityModalProps> = ({
   currentUser,
   userProfile,
   memberships,
-  initialMode = 'propose',
+  initialMode,
   onClose,
-  onSuccess
+  onSuccess,
 }) => {
-  const [mode, setMode] = useState<'propose' | 'search'>(initialMode);
-  const [type, setType] = useState<OpportunityType>(initialMode === 'propose' ? 'service' : 'skill_request');
+  const { t } = useLanguage();
+
+  const [mode, setMode] = useState<'propose_service' | 'search_need'>(
+    initialMode === 'search' || initialMode === 'search_need' ? 'search_need' : 'propose_service'
+  );
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState(OPPORTUNITY_CATEGORIES[0]);
+  const [category, setCategory] = useState(t.opportunities.categories.tech);
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState('');
-  const [location, setLocation] = useState(userProfile?.location || 'Présentiel & Distanciel');
-  const [availability, setAvailability] = useState(userProfile?.availability || 'Flexible');
+  const [location, setLocation] = useState(userProfile?.location || '');
+  const [selectedChurchId, setSelectedChurchId] = useState(memberships[0]?.churchId || '');
+  const [availability, setAvailability] = useState('Quelques heures / semaine');
+  const [compensation, setCompensation] = useState('Bénévole');
   const [visibility, setVisibility] = useState<OpportunityVisibility>('public');
-  
-  // Entity selection (Personal or Church)
-  const approvedLeaderChurches = memberships.filter(
-    m => m.status === 'approved' && (m.role === 'OWNER' || m.role === 'ADMIN')
-  );
-  const [selectedChurchId, setSelectedChurchId] = useState<string>('');
-
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleModeChange = (newMode: 'propose' | 'search') => {
-    setMode(newMode);
-    if (newMode === 'propose') {
-      setType('service');
-    } else {
-      setType('skill_request');
-    }
-  };
+  const CATEGORIES = [
+    t.opportunities.categories.design,
+    t.opportunities.categories.music,
+    t.opportunities.categories.tech,
+    t.opportunities.categories.accounting,
+    t.opportunities.categories.communication,
+    t.opportunities.categories.building,
+    t.opportunities.categories.social,
+    t.opportunities.categories.education
+  ];
 
-  const handleAddSkill = (skillToAdd?: string) => {
-    const s = (skillToAdd || skillInput).trim();
-    if (!s) return;
-    if (!skills.includes(s)) {
-      setSkills([...skills, s]);
-    }
+  const handleAddSkill = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!skillInput.trim() || skills.includes(skillInput.trim())) return;
+    setSkills([...skills, skillInput.trim()]);
     setSkillInput('');
   };
 
-  const handleRemoveSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(s => s !== skillToRemove));
+  const handleRemoveSkill = (skill: string) => {
+    setSkills(skills.filter((s) => s !== skill));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser) {
-      setError('Vous devez être connecté pour publier.');
-      return;
-    }
-
     if (!title.trim() || !description.trim()) {
       setError('Veuillez renseigner un titre et une description.');
       return;
@@ -96,386 +72,289 @@ export const CreateOpportunityModal: React.FC<CreateOpportunityModalProps> = ({
     setError(null);
 
     try {
-      const selectedChurch = approvedLeaderChurches.find(c => c.churchId === selectedChurchId);
+      const oppType: OpportunityType = mode === 'propose_service' ? 'service' : 'skill_request';
+      const church = memberships.find((m) => m.churchId === selectedChurchId);
 
       await createOpportunity({
-        type,
+        type: oppType,
         title: title.trim(),
         description: description.trim(),
         category,
         skills,
-        authorId: currentUser.uid,
-        authorName: userProfile?.displayName || currentUser.displayName || 'Membre ALLORA',
-        authorPhotoUrl: userProfile?.photoUrl || currentUser.photoURL || undefined,
-        authorTitle: userProfile?.professionalTitle || undefined,
-        churchId: selectedChurch ? selectedChurch.churchId : undefined,
-        churchName: selectedChurch ? selectedChurch.churchName : undefined,
-        location: location.trim() || 'Distanciel / Présentiel',
+        authorId: currentUser?.uid || currentUser?.id,
+        authorName: userProfile?.displayName || currentUser?.displayName || currentUser?.email?.split('@')[0],
+        authorPhotoUrl: userProfile?.photoUrl || currentUser?.photoURL,
+        authorTitle: userProfile?.professionalTitle || userProfile?.profession,
+        churchId: selectedChurchId || undefined,
+        churchName: church?.churchName || undefined,
+        location: location.trim() || 'En ligne / Non spécifié',
         visibility,
-        status: 'open',
-        availability: availability.trim() || undefined
+        availability,
+        compensation,
       });
 
       onSuccess();
     } catch (err: any) {
       console.error('Error creating opportunity:', err);
-      setError(err.message || 'Erreur lors de la création de l\'opportunité.');
+      setError(err?.message || 'Erreur lors de la création de l\'annonce.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-white dark:bg-[#19344A] rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-[#67B7E8]/10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-[#19344A] border border-[#E8E4D9] dark:border-[#67B7E8]/20 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 dark:border-[#67B7E8]/10 flex items-center justify-between sticky top-0 bg-white dark:bg-[#19344A] z-10">
+        <div className="p-5 sm:p-6 border-b border-[#E8E4D9] dark:border-[#67B7E8]/20 flex items-center justify-between bg-[#FAF9F6] dark:bg-[#111315]/40">
           <div>
-            <span className="text-xs font-bold text-[#67B7E8] dark:text-[#67B7E8] uppercase tracking-wider">Opportunités & Services</span>
-            <h2 className="text-lg font-black text-[#19344A] dark:text-white">
-              {mode === 'propose' ? 'Proposer une compétence ou un service' : 'Publier une recherche ou une opportunité'}
+            <h2 className="text-base sm:text-lg font-black text-[#19344A] dark:text-white">
+              Publier une annonce d'opportunité & compétence
             </h2>
+            <p className="text-xs text-[#6F7B85] dark:text-[#FAF9F6]/60 mt-0.5">
+              Connectez vos talents chrétiens au service des églises et de la communauté
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-[#19344A] dark:text-[#FAF9F6]/70 hover:text-[#19344A] dark:hover:text-[#19344A] rounded-full hover:bg-[#FAF9F6] dark:hover:bg-#1D334D transition-colors"
+            className="p-2 rounded-xl text-[#6F7B85] hover:text-[#19344A] dark:hover:text-white hover:bg-black/5 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Main Tabs : Proposer / Rechercher */}
-        <div className="p-4 bg-[#FAF9F6] dark:bg-[#1D334D]/50 border-b border-gray-100 dark:border-[#67B7E8]/10 flex gap-2">
-          <button
-            type="button"
-            onClick={() => handleModeChange('propose')}
-            className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-              mode === 'propose'
-                ? 'bg-[#67B7E8] dark:bg-blue-600 text-white shadow-sm'
-                : 'bg-white dark:bg-[#19344A] text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D border border-[#E8E4D9] dark:border-[#67B7E8]/20'
-            }`}
-          >
-            <UserCheck className="w-4 h-4" />
-            <span>Je propose (Service / Talent)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleModeChange('search')}
-            className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-              mode === 'search'
-                ? 'bg-[#67B7E8] dark:bg-blue-600 text-white shadow-sm'
-                : 'bg-white dark:bg-[#19344A] text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D border border-[#E8E4D9] dark:border-[#67B7E8]/20'
-            }`}
-          >
-            <Search className="w-4 h-4" />
-            <span>Je recherche (Besoin / Offre)</span>
-          </button>
+        {/* Mode Selector */}
+        <div className="p-4 sm:p-5 border-b border-[#E8E4D9] dark:border-[#67B7E8]/10 bg-white dark:bg-[#19344A]">
+          <div className="grid grid-cols-2 gap-2 bg-[#FAF9F6] dark:bg-[#111315]/50 p-1.5 rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/10">
+            <button
+              type="button"
+              onClick={() => setMode('propose_service')}
+              className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                mode === 'propose_service'
+                  ? 'bg-emerald-500 text-white shadow-sm'
+                  : 'text-[#6F7B85] dark:text-[#FAF9F6]/60 hover:text-[#19344A] dark:hover:text-white'
+              }`}
+            >
+              🤝 {t.opportunities.tabPropose} (Mes services)
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('search_need')}
+              className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                mode === 'search_need'
+                  ? 'bg-[#67B7E8] text-white shadow-sm'
+                  : 'text-[#6F7B85] dark:text-[#FAF9F6]/60 hover:text-[#19344A] dark:hover:text-white'
+              }`}
+            >
+              🔍 {t.opportunities.tabSearch} (Recherche de compétence)
+            </button>
+          </div>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-4">
           {error && (
-            <div className="p-3.5 bg-[#FAF9F6] dark:bg-[#19344A]/20 text-[#19344A] dark:text-[#FAF9F6]/70 text-xs rounded-xl flex items-start gap-2 border border-[#19344A] dark:border-[#19344A]/50">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 text-red-600 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* Type Selector */}
-          <div>
-            <label className="block text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-1.5">
-              Type précis d'annonce
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {mode === 'propose' ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setType('service')}
-                    className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all ${
-                      type === 'service'
-                        ? 'border-[#67B7E8] bg-[#67B7E8]/5 dark:bg-blue-900/20 text-[#67B7E8] dark:text-[#67B7E8]'
-                        : 'border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D'
-                    }`}
-                  >
-                    <span className="block font-bold">Service / Compétence</span>
-                    <span className="text-[11px] text-[#19344A] dark:text-[#FAF9F6]/70 font-normal">Ex: graphiste dispo, cours de musique</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setType('volunteer')}
-                    className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all ${
-                      type === 'volunteer'
-                        ? 'border-[#67B7E8] bg-[#67B7E8]/5 dark:bg-blue-900/20 text-[#67B7E8] dark:text-[#67B7E8]'
-                        : 'border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D'
-                    }`}
-                  >
-                    <span className="block font-bold">Bénévolat / Service d'église</span>
-                    <span className="text-[11px] text-[#19344A] dark:text-[#FAF9F6]/70 font-normal">Disponible pour servir bénévolement</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setType('skill_request')}
-                    className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all ${
-                      type === 'skill_request'
-                        ? 'border-[#67B7E8] bg-[#67B7E8]/5 dark:bg-blue-900/20 text-[#67B7E8] dark:text-[#67B7E8]'
-                        : 'border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D'
-                    }`}
-                  >
-                    <span className="block font-bold">Recherche de compétence</span>
-                    <span className="text-[11px] text-[#19344A] dark:text-[#FAF9F6]/70 font-normal">Ex: recherche un comptable, un vidéaste</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setType('job')}
-                    className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all ${
-                      type === 'job'
-                        ? 'border-[#67B7E8] bg-[#67B7E8]/5 dark:bg-blue-900/20 text-[#67B7E8] dark:text-[#67B7E8]'
-                        : 'border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D'
-                    }`}
-                  >
-                    <span className="block font-bold">Emploi / Mission rémunérée</span>
-                    <span className="text-[11px] text-[#19344A] dark:text-[#FAF9F6]/70 font-normal">Poste ouvert ou prestation</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
           {/* Title */}
           <div>
-            <label className="block text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-1.5">
-              Titre de l'annonce <span className="text-[#67B7E8]">*</span>
+            <label className="block text-xs font-bold text-[#19344A] dark:text-white mb-1.5">
+              Titre de l'annonce *
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={
-                mode === 'propose'
-                  ? "Ex: Graphiste & Designer disponible pour servir vos projets"
-                  : "Ex: Recherche un vidéaste pour enregistrement de culte"
+                mode === 'propose_service'
+                  ? 'ex: Graphiste & monteur vidéo pour vos cultes et réseaux'
+                  : 'ex: Recherche développeur Web bénévole pour le site de notre église'
               }
               required
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#1D334D] text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 dark:focus:ring-blue-500/20 focus:border-[#67B7E8] dark:focus:border-[#67B7E8]"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#111315]/50 text-xs text-[#19344A] dark:text-white focus:outline-none focus:border-[#67B7E8]"
             />
           </div>
 
           {/* Category & Location */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-[#19344A] dark:text-white mb-1.5">
                 Domaine / Catégorie
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 dark:focus:ring-blue-500/20 focus:border-[#67B7E8] dark:focus:border-[#67B7E8] bg-white dark:bg-[#1D334D] dark:text-white"
+                className="w-full px-3 py-2 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#111315] text-xs text-[#19344A] dark:text-white focus:outline-none focus:border-[#67B7E8]"
               >
-                {OPPORTUNITY_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                {CATEGORIES.map((cat, idx) => (
+                  <option key={idx} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-1.5">
-                Localisation / Modalité
+              <label className="block text-xs font-bold text-[#19344A] dark:text-white mb-1.5">
+                Lieu ou mode d'intervention
               </label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Ex: Paris / Distanciel"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#1D334D] text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 dark:focus:ring-blue-500/20 focus:border-[#67B7E8] dark:focus:border-[#67B7E8]"
-              />
+              <div className="relative">
+                <MapPin className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#6F7B85]" />
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="ex: Paris / À distance"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#111315]/50 text-xs text-[#19344A] dark:text-white focus:outline-none focus:border-[#67B7E8]"
+                />
+              </div>
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-1.5">
-              Description détaillée <span className="text-[#67B7E8]">*</span>
+            <label className="block text-xs font-bold text-[#19344A] dark:text-white mb-1.5">
+              Description détaillée *
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Décrivez précisément votre proposition, vos expériences, vos attentes et les détails utiles..."
+              placeholder="Décrivez précisément ce que vous proposez ou ce que vous recherchez, les attentes, le contexte..."
               rows={4}
               required
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#1D334D] text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 dark:focus:ring-blue-500/20 focus:border-[#67B7E8] dark:focus:border-[#67B7E8] resize-none"
+              className="w-full px-4 py-3 rounded-2xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#111315]/50 text-xs text-[#19344A] dark:text-white placeholder:text-[#6F7B85]/50 focus:outline-none focus:border-[#67B7E8] resize-none"
             />
           </div>
 
           {/* Skills tags */}
           <div>
-            <label className="block text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-1.5">
-              Compétences associées (mots-clés pour la recherche)
+            <label className="block text-xs font-bold text-[#19344A] dark:text-white mb-1.5">
+              Compétences clés
             </label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {skills.map((skill, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#67B7E8]/15 text-[#19344A] dark:text-white text-xs font-semibold"
+                >
+                  <span>{skill}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSkill(skill)}
+                    className="text-[#6F7B85] hover:text-red-500"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={skillInput}
                 onChange={(e) => setSkillInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddSkill();
-                  }
-                }}
-                placeholder="Ajouter une compétence (ex: Vidéo, Son, Web)..."
-                className="flex-1 px-3 py-2 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#1D334D] text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 dark:focus:ring-blue-500/20 focus:border-[#67B7E8] dark:focus:border-[#67B7E8]"
+                placeholder="Ajouter une compétence (ex: Photoshop, Sonorisation)"
+                className="flex-1 px-3 py-2 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#111315]/50 text-xs text-[#19344A] dark:text-white focus:outline-none focus:border-[#67B7E8]"
               />
               <button
                 type="button"
-                onClick={() => handleAddSkill()}
-                className="px-3 py-2 bg-[#FAF9F6] dark:bg-[#1D334D] hover:bg-gray-200 dark:hover:bg-#253C5A text-[#19344A] dark:text-[#FAF9F6]/70 font-semibold text-xs rounded-xl transition-colors"
+                onClick={handleAddSkill}
+                className="px-3.5 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#111315] border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs font-bold text-[#19344A] dark:text-white hover:border-[#67B7E8]"
               >
                 Ajouter
               </button>
             </div>
+          </div>
 
-            {/* Quick Suggestions */}
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {SKILL_SUGGESTIONS.slice(0, 6).map((s) => (
-                <button
-                  type="button"
-                  key={s}
-                  onClick={() => handleAddSkill(s)}
-                  className="px-2 py-0.5 rounded-md bg-[#FAF9F6] dark:bg-[#1D334D] hover:bg-gray-200 dark:hover:bg-#253C5A text-[#19344A] dark:text-[#FAF9F6]/70 text-[10px] font-medium transition-colors border border-transparent dark:border-[#67B7E8]/20"
+          {/* Church affiliation & Compensation */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {memberships.length > 0 && (
+              <div>
+                <label className="block text-xs font-bold text-[#19344A] dark:text-white mb-1.5">
+                  Rattacher à une église (optionnel)
+                </label>
+                <select
+                  value={selectedChurchId}
+                  onChange={(e) => setSelectedChurchId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#111315] text-xs text-[#19344A] dark:text-white focus:outline-none focus:border-[#67B7E8]"
                 >
-                  + {s}
-                </button>
-              ))}
-            </div>
-
-            {skills.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {skills.map((s, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#67B7E8]/10 dark:bg-[#67B7E8]/20 text-[#67B7E8] dark:text-[#67B7E8] text-xs font-medium"
-                  >
-                    <Tag className="w-3 h-3 mr-1" />
-                    {s}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(s)}
-                      className="ml-1.5 text-[#67B7E8]/70 dark:text-[#67B7E8]/70 hover:text-[#67B7E8] dark:hover:text-[#67B7E8] font-bold"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
+                  <option value="">Aucune église associée</option>
+                  {memberships.map((m) => (
+                    <option key={m.membershipId} value={m.churchId}>
+                      {m.churchName}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
-          </div>
 
-          {/* Availability */}
-          <div>
-            <label className="block text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-1.5">
-              Disponibilités / Période
-            </label>
-            <input
-              type="text"
-              value={availability}
-              onChange={(e) => setAvailability(e.target.value)}
-              placeholder="Ex: Samedis & dimanches, 5h par semaine, Dès maintenant"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#1D334D] text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 dark:focus:ring-blue-500/20 focus:border-[#67B7E8] dark:focus:border-[#67B7E8]"
-            />
-          </div>
-
-          {/* Publisher Identity (Personal vs Church) */}
-          {approvedLeaderChurches.length > 0 && (
             <div>
-              <label className="block text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-1.5">
-                Publier en tant que
+              <label className="block text-xs font-bold text-[#19344A] dark:text-white mb-1.5">
+                Modalité / Rémunération
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedChurchId('')}
-                  className={`p-3 rounded-xl border text-left text-xs font-semibold flex items-center gap-2 ${
-                    selectedChurchId === ''
-                      ? 'border-[#67B7E8] bg-[#67B7E8]/5 dark:bg-blue-900/20 text-[#67B7E8] dark:text-[#67B7E8]'
-                      : 'border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D'
-                  }`}
-                >
-                  <User className="w-4 h-4" />
-                  <span>Mon profil personnel</span>
-                </button>
-
-                {approvedLeaderChurches.map((c) => (
-                  <button
-                    type="button"
-                    key={c.churchId}
-                    onClick={() => setSelectedChurchId(c.churchId)}
-                    className={`p-3 rounded-xl border text-left text-xs font-semibold flex items-center gap-2 ${
-                      selectedChurchId === c.churchId
-                        ? 'border-[#67B7E8] bg-[#67B7E8]/5 dark:bg-blue-900/20 text-[#67B7E8] dark:text-[#67B7E8]'
-                        : 'border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D'
-                    }`}
-                  >
-                    <Building2 className="w-4 h-4 text-[#67B7E8] dark:text-[#67B7E8]" />
-                    <span className="truncate">{c.churchName}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Visibility */}
-          <div>
-            <label className="block text-xs font-bold text-[#19344A] dark:text-[#FAF9F6]/70 uppercase tracking-wider mb-1.5">
-              Visibilité de l'annonce
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setVisibility('public')}
-                className={`p-2.5 rounded-xl border text-left text-xs font-semibold flex items-center gap-2 ${
-                  visibility === 'public'
-                    ? 'border-[#67B7E8] bg-[#67B7E8]/5 dark:bg-blue-900/20 text-[#67B7E8] dark:text-[#67B7E8]'
-                    : 'border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D'
-                }`}
+              <select
+                value={compensation}
+                onChange={(e) => setCompensation(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#111315] text-xs text-[#19344A] dark:text-white focus:outline-none focus:border-[#67B7E8]"
               >
-                <Globe className="w-3.5 h-3.5 text-[#67B7E8] dark:text-[#67B7E8]" />
-                <span>Tout ALLORA (Public)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setVisibility('church')}
-                className={`p-2.5 rounded-xl border text-left text-xs font-semibold flex items-center gap-2 ${
-                  visibility === 'church'
-                    ? 'border-[#67B7E8] bg-[#67B7E8]/5 dark:bg-blue-900/20 text-[#67B7E8] dark:text-[#67B7E8]'
-                    : 'border-[#E8E4D9] dark:border-[#67B7E8]/20 text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D'
-                }`}
-              >
-                <Lock className="w-3.5 h-3.5 text-[#67B7E8] dark:text-[#67B7E8]" />
-                <span>Mon église uniquement</span>
-              </button>
+                <option value="Bénévole / Service">Bénévole / Service fraternel</option>
+                <option value="Dédommagement des frais">Dédommagement des frais</option>
+                <option value="Prestation professionnelle">Prestation professionnelle</option>
+                <option value="À discuter">À discuter</option>
+              </select>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-gray-100 dark:border-[#67B7E8]/10">
+          {/* Availability & Visibility */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-[#19344A] dark:text-white mb-1.5">
+                Disponibilité
+              </label>
+              <input
+                type="text"
+                value={availability}
+                onChange={(e) => setAvailability(e.target.value)}
+                placeholder="ex: Soirs & week-ends, Temps plein"
+                className="w-full px-3 py-2 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#111315]/50 text-xs text-[#19344A] dark:text-white focus:outline-none focus:border-[#67B7E8]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#19344A] dark:text-white mb-1.5">
+                Visibilité
+              </label>
+              <select
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as OpportunityVisibility)}
+                className="w-full px-3 py-2 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 bg-white dark:bg-[#111315] text-xs text-[#19344A] dark:text-white focus:outline-none focus:border-[#67B7E8]"
+              >
+                <option value="public">Publique (Tous les membres ALLORA)</option>
+                <option value="church">Église uniquement</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Submit buttons */}
+          <div className="pt-4 border-t border-[#E8E4D9] dark:border-[#67B7E8]/20 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-[#19344A] dark:text-[#FAF9F6]/70 hover:bg-[#FAF9F6] dark:hover:bg-#1D334D rounded-xl transition-colors"
+              className="px-4 py-2.5 rounded-xl border border-[#E8E4D9] dark:border-[#67B7E8]/20 text-xs font-bold text-[#6F7B85] hover:bg-black/5 cursor-pointer"
             >
               Annuler
             </button>
             <button
               type="submit"
-              disabled={submitting || !title.trim() || !description.trim()}
-              className="px-6 py-2.5 bg-[#67B7E8] dark:bg-blue-600 hover:bg-[#67B7E8]-hover dark:hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors disabled:opacity-50"
+              disabled={submitting}
+              className="px-6 py-2.5 rounded-xl bg-[#67B7E8] text-white text-xs font-bold hover:opacity-90 active:scale-95 transition-all shadow-md shadow-[#67B7E8]/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
-              {submitting ? 'Publication en cours...' : 'Publier l\'annonce'}
+              <Plus className="w-4 h-4" />
+              <span>{submitting ? 'Publication en cours...' : 'Publier l\'annonce'}</span>
             </button>
           </div>
         </form>

@@ -1,5 +1,5 @@
 /**
- * Utility to compress and resize images client-side before sending to Firestore
+ * Utility to compress and resize images client-side before sending to Supabase
  * Guarantees small payload sizes (< 100KB) and high visual fidelity.
  */
 

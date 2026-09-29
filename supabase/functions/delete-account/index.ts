@@ -11,17 +11,27 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('Configuration serveur Supabase incomplète');
+    }
+
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Non autorisé' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userClient = createClient(
+      supabaseUrl,
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      { global: { headers: { Authorization: authHeader } } }
     );
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseClient.auth.getUser();
-
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Non autorisé' }), {
         status: 401,
@@ -29,69 +39,55 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Step 1: Check church ownership - cannot delete if sole owner
-    const { data: ownedChurches, error: churchCheckError } = await supabaseClient
+    // All privileged work is performed server-side with the service role.
+    // The key never exists in the browser bundle.
+    const admin = createClient(supabaseUrl, serviceRoleKey);
+
+    // A church must never be left without an OWNER.
+    const { data: ownedMemberships, error: ownerError } = await admin
       .from('church_members')
-      .select('church_id, churches(name, leader_ids)')
+      .select('church_id')
       .eq('user_id', user.id)
-      .eq('role', 'OWNER');
+      .eq('role', 'OWNER')
+      .eq('status', 'approved');
 
-    if (churchCheckError) {
-      return new Response(JSON.stringify({ error: churchCheckError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    if (ownerError) throw ownerError;
 
-    if (ownedChurches && ownedChurches.length > 0) {
-      for (const item of ownedChurches) {
-        const church = (item as any).churches;
-        const otherLeaders = (church?.leader_ids || []).filter((id: string) => id !== user.id);
-        if (otherLeaders.length === 0) {
-          return new Response(
-            JSON.stringify({
-              error: `Impossible de supprimer votre compte : vous êtes l'unique propriétaire de l'église "${church?.name}". Vous devez désigner un autre propriétaire ou supprimer cette église au préalable.`
-            }),
-            {
-              status: 400,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            }
-          );
-        }
+    for (const membership of ownedMemberships ?? []) {
+      const { count, error: countError } = await admin
+        .from('church_members')
+        .select('id', { count: 'exact', head: true })
+        .eq('church_id', membership.church_id)
+        .eq('role', 'OWNER')
+        .eq('status', 'approved')
+        .neq('user_id', user.id);
+
+      if (countError) throw countError;
+
+      if ((count ?? 0) === 0) {
+        return new Response(
+          JSON.stringify({
+            error: 'Impossible de supprimer votre compte : vous êtes le seul propriétaire approuvé d’une église. Transférez d’abord la propriété.'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
     }
 
-    // Step 2: Delete related user documents
-    await Promise.all([
-      supabaseClient.from('church_members').delete().eq('user_id', user.id),
-      supabaseClient.from('event_participants').delete().eq('user_id', user.id),
-      supabaseClient.from('notifications').delete().eq('user_id', user.id),
-      supabaseClient.from('contact_requests').delete().or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`),
-      supabaseClient.from('profiles').delete().eq('id', user.id),
-      supabaseClient.from('public_profiles').delete().eq('id', user.id),
-    ]);
-
-    // Step 3: Delete Auth User via Service Role client (or Admin API)
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    if (serviceRoleKey) {
-      const adminClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        serviceRoleKey
-      );
-      await adminClient.auth.admin.deleteUser(user.id);
-    }
+    // The hardening migration adds ON DELETE CASCADE/SET NULL to the
+    // user-owned relational graph. Deleting auth.users is therefore the
+    // single authoritative deletion operation.
+    const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
+    if (deleteError) throw deleteError;
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Votre compte a été supprimé avec succès.' }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ success: true, message: 'Votre compte ALLORA et ses données associées ont été supprimés.' }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Erreur serveur' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: err?.message || 'Erreur serveur' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 });

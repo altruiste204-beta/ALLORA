@@ -174,7 +174,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return 'ALLORA Réseau';
   })();
 
-  // Exact live counts from Firestore
+  // Exact live counts from Supabase
   const connectedChurchesCount = churches.length;
   const activeNeedsCount = needs.filter(n => n.status === 'open' || n.status === 'partially_fulfilled').length;
   const availableResourcesCount = resources.filter(r => r.status === 'available').length;
@@ -205,7 +205,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const autocompleteSuggestions = useMemo<SearchSuggestion[]>(() => {
     if (!normalizedQuery) return [];
 
-    // Live resources from Firestore
+    // Live resources from Supabase
     const liveResItems: SearchSuggestion[] = resources
       .filter(r => r.status === 'available')
       .map(r => ({
@@ -216,7 +216,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         isPopular: false
       }));
 
-    // Live events from Firestore
+    // Live events from Supabase
     const liveEventItems: SearchSuggestion[] = events
       .filter(e => e.status !== 'cancelled')
       .map(e => ({
@@ -895,7 +895,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
-      {/* 4. Besoins récents (Recent Needs from Firestore) */}
+      {/* 4. Besoins récents (Recent Needs from Supabase) */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-extrabold text-[#19344A] dark:text-white tracking-tight">
@@ -1000,7 +1000,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
-      {/* 5. Événements à venir (Upcoming Events from Firestore) */}
+      {/* 5. Événements à venir (Upcoming Events from Supabase) */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-extrabold text-[#19344A] dark:text-white tracking-tight">

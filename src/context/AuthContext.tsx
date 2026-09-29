@@ -39,7 +39,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   isOnline: boolean;
-  isFirestoreConnected: boolean; // Kept for backwards compatibility with UI components
+  isSupabaseConnected: boolean;
   isAccountDeactivated: boolean;
   clearError: () => void;
   refreshProfile: () => Promise<void>;
@@ -264,7 +264,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         error,
         isOnline,
-        isFirestoreConnected: true,
+        isSupabaseConnected: true,
         isAccountDeactivated,
         clearError,
         refreshProfile,

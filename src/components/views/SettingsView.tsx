@@ -659,13 +659,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     );
   }
 
-  // ================= 5. APPARENCE ET LANGUE (FRANÇAIS, ENGLISH, SWAHILI) =================
+  // ================= 5. APPARENCE ET LANGUE (FRANÇAIS, ENGLISH) =================
   if (currentSection === 'preferences') {
     return (
       <div className="animate-in slide-in-from-right duration-300">
         {renderSectionHeader(t.settings.categoryAppearance)}
         <div className="p-4 space-y-6">
-          {/* Language Selection: Strict requirement of ONLY Français, English, Swahili */}
+          {/* Language Selection: Strict requirement of ONLY Français and English */}
           <section className="space-y-3">
             <h3 className="text-xs font-black text-[#19344A] uppercase tracking-widest px-1">{t.settings.interfaceLanguage}</h3>
             <div className="space-y-2">

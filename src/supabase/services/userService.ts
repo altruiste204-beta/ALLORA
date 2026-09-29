@@ -75,107 +75,70 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 
 export async function saveUserProfile(profile: UserProfile): Promise<void> {
   const row = mapProfileToRow(profile);
+  // Auth owns identity/status fields. Only the profile attributes below are
+  // client-editable; the database trigger maintains public_profiles.
+  delete row.status;
+  delete row.is_deactivated;
+  delete row.deactivated_at;
+  if (profile.email === undefined) delete row.email;
+  row.id = profile.userId;
   row.created_at = profile.createdAt || new Date().toISOString();
 
-  const { error: profileError } = await supabase
+  const { error } = await supabase
     .from('profiles')
     .upsert(row, { onConflict: 'id' });
 
-  if (profileError) throw profileError;
-
-  // Also maintain public projection
-  const publicRow = {
-    id: profile.userId,
-    display_name: profile.displayName,
-    photo_url: profile.photoUrl,
-    professional_title: profile.professionalTitle,
-    profession: profile.profession,
-    location: profile.privacySettings?.locationVisibility !== false ? profile.location : null,
-    skills: profile.privacySettings?.skillsVisibility !== false ? (profile.skills || []) : [],
-    bio: profile.bio,
-    availability: profile.availability,
-    updated_at: new Date().toISOString(),
-  };
-
-  await supabase.from('public_profiles').upsert(publicRow, { onConflict: 'id' });
+  if (error) throw error;
 }
 
 export async function updateUserFields(userId: string, partial: Partial<UserProfile>): Promise<void> {
   const row = mapProfileToRow(partial);
+
+  // Never trust client attempts to change identity/account state.
+  delete row.id;
+  delete row.email;
+  delete row.status;
+  delete row.is_deactivated;
+  delete row.deactivated_at;
+
   const { error } = await supabase
     .from('profiles')
     .update(row)
     .eq('id', userId);
 
   if (error) throw error;
-
-  // Sync public fields
-  const publicUpdates: any = {};
-  if (partial.displayName !== undefined) publicUpdates.display_name = partial.displayName;
-  if (partial.photoUrl !== undefined) publicUpdates.photo_url = partial.photoUrl;
-  if (partial.professionalTitle !== undefined) publicUpdates.professional_title = partial.professionalTitle;
-  if (partial.profession !== undefined) publicUpdates.profession = partial.profession;
-  if (partial.location !== undefined) publicUpdates.location = partial.location;
-  if (partial.skills !== undefined) publicUpdates.skills = partial.skills;
-  if (partial.bio !== undefined) publicUpdates.bio = partial.bio;
-  if (partial.availability !== undefined) publicUpdates.availability = partial.availability;
-
-  if (Object.keys(publicUpdates).length > 0) {
-    publicUpdates.updated_at = new Date().toISOString();
-    await supabase.from('public_profiles').update(publicUpdates).eq('id', userId);
-  }
 }
 
 export async function deactivateAccount(userId: string): Promise<void> {
-  await updateUserFields(userId, {
-    status: 'deactivated',
-    isDeactivated: true,
-    deactivatedAt: new Date().toISOString(),
-  });
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user || user.user.id !== userId) throw new Error('Authentification requise');
+  const { error } = await supabase.rpc('set_account_deactivated', { p_deactivated: true });
+  if (error) throw error;
 }
 
 export async function reactivateAccount(userId: string): Promise<void> {
-  await updateUserFields(userId, {
-    status: 'active',
-    isDeactivated: false,
-    deactivatedAt: undefined,
-  });
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user || user.user.id !== userId) throw new Error('Authentification requise');
+  const { error } = await supabase.rpc('set_account_deactivated', { p_deactivated: false });
+  if (error) throw error;
 }
 
 export async function deleteAccountPermanently(userId: string): Promise<{ success: boolean; message: string }> {
-  // Step 1: Check church owner safeguards
-  const { data: ownedChurches } = await supabase
-    .from('church_members')
-    .select('church_id, churches:church_id(name, leader_ids)')
-    .eq('user_id', userId)
-    .eq('role', 'OWNER');
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user || user.user.id !== userId) throw new Error('Authentification requise');
 
-  if (ownedChurches && ownedChurches.length > 0) {
-    for (const item of ownedChurches) {
-      const church = (item as any).churches;
-      const otherLeaders = (church?.leader_ids || []).filter((id: string) => id !== userId);
-      if (otherLeaders.length === 0) {
-        throw new Error(
-          `Impossible de supprimer votre compte : vous êtes l'unique propriétaire de l'église "${church?.name || ''}". Vous devez d'abord désigner un autre propriétaire ou supprimer cette église.`
-        );
-      }
-    }
-  }
+  const { data, error } = await supabase.functions.invoke('delete-account', {
+    body: {},
+  });
 
-  // Step 2: Delete related user data
-  await Promise.all([
-    supabase.from('church_members').delete().eq('user_id', userId),
-    supabase.from('event_participants').delete().eq('user_id', userId),
-    supabase.from('notifications').delete().eq('user_id', userId),
-    supabase.from('contact_requests').delete().or(`sender_id.eq.${userId},recipient_id.eq.${userId}`),
-    supabase.from('profiles').delete().eq('id', userId),
-    supabase.from('public_profiles').delete().eq('id', userId),
-  ]);
+  if (error) throw error;
+  if (!data?.success) throw new Error(data?.error || 'La suppression du compte a échoué.');
 
-  // Sign out user locally
   await supabase.auth.signOut();
-
-  return { success: true, message: 'Votre compte ALLORA et vos données associées ont été supprimés avec succès.' };
+  return {
+    success: true,
+    message: data.message || 'Votre compte ALLORA a été supprimé.',
+  };
 }
 
 export async function sendPasswordReset(email: string): Promise<void> {

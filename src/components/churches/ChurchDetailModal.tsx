@@ -7,7 +7,8 @@ import {
   updateMemberStatus,
   updateMemberRole,
   leaveChurch,
-  joinChurchWithCode
+  joinChurchWithCode,
+  getChurchJoinCode
 } from '../../supabase/services/dataService';
 import { getHumanErrorMessage } from '../../supabase/errors';
 import { Church, ChurchMember } from '../../types';
@@ -35,13 +36,26 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showJoinCodeInput, setShowJoinCodeInput] = useState(false);
   const [manualJoinCode, setManualJoinCode] = useState('');
+  const [leaderJoinCode, setLeaderJoinCode] = useState<string | null>(null);
 
   // Find user's relationship with this church
   const myMembership = memberships.find(m => m.churchId === church.churchId);
   const isApprovedMember = myMembership?.status === 'approved';
   const isPendingMember = myMembership?.status === 'pending';
-  const isLeader = user && church.leaderIds?.includes(user.uid);
   const myRole = myMembership?.role;
+  const isLeader = Boolean(myRole === 'OWNER' || myRole === 'ADMIN');
+
+  useEffect(() => {
+    let cancelled = false;
+    if (isOpen && isLeader) {
+      getChurchJoinCode(church.churchId)
+        .then(code => { if (!cancelled) setLeaderJoinCode(code); })
+        .catch(() => { if (!cancelled) setLeaderJoinCode(null); });
+    } else {
+      setLeaderJoinCode(null);
+    }
+    return () => { cancelled = true; };
+  }, [isOpen, isLeader, church.churchId]);
 
   // Load members of this church
   const loadMembers = async () => {
@@ -398,7 +412,7 @@ export const ChurchDetailModal: React.FC<ChurchDetailModalProps> = ({
                   <span className="text-[10px] uppercase font-bold tracking-wider text-[#19344A]/50 dark:text-[#FAF9F6]/70">Espace Responsable</span>
                   <p className="text-xs text-[#19344A]/80 dark:text-[#FAF9F6]/70 font-medium">Partagez ce code secret pour approuver directement de nouveaux membres :</p>
                   <p className="text-sm font-bold font-mono text-[#19344A] dark:text-white tracking-wider bg-[#FAF9F6] dark:bg-[#19344A] inline-block px-3 py-1.5 rounded-lg border border-[#E8E4D9] dark:border-[#67B7E8]/20 mt-1.5">
-                    {church.joinCode}
+                    {leaderJoinCode || '••••••••••'}
                   </p>
                 </div>
               )}

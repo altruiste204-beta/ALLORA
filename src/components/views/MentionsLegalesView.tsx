@@ -18,7 +18,7 @@ export const MentionsLegalesView: React.FC<MentionsLegalesViewProps> = ({ onNavi
   const [email, setEmail] = useState('contact@allora-reseau.org');
   const [phone, setPhone] = useState('+33 1 23 45 67 89');
   const [publisher, setPublisher] = useState('Direction de la Publication ALLORA');
-  const [host, setHost] = useState('Google Cloud Platform / Firebase Hosting');
+  const [host, setHost] = useState('Supabase / hébergement web sécurisé');
   const [lastUpdate, setLastUpdate] = useState('27 septembre 2026');
 
   return (

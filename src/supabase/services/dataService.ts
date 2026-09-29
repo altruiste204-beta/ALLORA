@@ -67,65 +67,28 @@ export async function fetchChurches(): Promise<Church[]> {
 
 export async function createChurch(
   church: Partial<Church>,
-  userIdOrCode?: string,
-  userDisplayName?: string,
-  userEmail?: string
+  _userId?: string,
+  _userDisplayName?: string,
+  _userEmail?: string
 ): Promise<string> {
-  const { data: user } = await supabase.auth.getUser();
-  const effectiveUserId = user.user?.id || (userDisplayName ? userIdOrCode : undefined);
-  if (!effectiveUserId) throw new Error('Authentification requise pour créer une église');
-
-  const cleanJoinCode = (userDisplayName || !userIdOrCode ? Math.random().toString(36).substring(2, 8).toUpperCase() : userIdOrCode.trim().toUpperCase());
-
-  const { data: newChurch, error: churchError } = await supabase
-    .from('churches')
-    .insert({
-      name: church.name,
-      description: church.description,
-      logo_url: church.logoUrl,
-      cover_image_url: church.coverImageUrl,
-      address: church.address,
-      city: church.city,
-      country: church.country,
-      contact_phone: church.contactPhone,
-      contact_email: church.contactEmail,
-      website: church.website,
-      denomination: church.denomination,
-      founded_year: church.foundedYear,
-      leader_ids: [effectiveUserId],
-      verification_status: 'pending',
-      created_by: effectiveUserId,
-    })
-    .select()
-    .single();
-
-  if (churchError) throw churchError;
-
-  // Store secret joinCode securely in church_secrets
-  const { error: secretError } = await supabase
-    .from('church_secrets')
-    .insert({
-      church_id: newChurch.id,
-      join_code: cleanJoinCode,
-    });
-
-  if (secretError) console.warn('Notice saving church secret:', secretError);
-
-  // Automatically create OWNER membership
-  const membershipId = `${newChurch.id}_${effectiveUserId}`;
-  await supabase.from('church_members').upsert({
-    id: membershipId,
-    church_id: newChurch.id,
-    user_id: effectiveUserId,
-    church_name: newChurch.name,
-    display_name: userDisplayName || user.user?.user_metadata?.display_name || user.user?.email?.split('@')[0] || 'Responsable',
-    email: userEmail || user.user?.email || '',
-    photo_url: user.user?.user_metadata?.avatar_url,
-    role: 'OWNER',
-    status: 'approved',
+  const { data, error } = await supabase.rpc('create_church', {
+    p_name: church.name,
+    p_description: church.description || null,
+    p_logo_url: church.logoUrl || null,
+    p_cover_image_url: church.coverImageUrl || null,
+    p_address: church.address || null,
+    p_city: church.city,
+    p_country: church.country,
+    p_contact_phone: church.contactPhone || null,
+    p_contact_email: church.contactEmail || null,
+    p_website: church.website || null,
+    p_denomination: church.denomination || null,
+    p_founded_year: church.foundedYear || null,
   });
 
-  return newChurch.id;
+  if (error) throw error;
+  if (!data?.churchId) throw new Error('La création de l’église a échoué.');
+  return data.churchId as string;
 }
 
 export async function joinChurchWithCode(
@@ -143,6 +106,14 @@ export async function joinChurchWithCode(
   return data || { success: true };
 }
 
+export async function getChurchJoinCode(churchId: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('get_church_join_code', {
+    p_church_id: churchId,
+  });
+  if (error) throw error;
+  return data || null;
+}
+
 export async function fetchUserMemberships(userId: string): Promise<ChurchMember[]> {
   const { data, error } = await supabase
     .from('church_members')
@@ -154,7 +125,7 @@ export async function fetchUserMemberships(userId: string): Promise<ChurchMember
     return [];
   }
 
-  return (data || []).map((row: any) => ({
+  const memberships = (data || []).map((row: any) => ({
     membershipId: row.id,
     churchId: row.church_id,
     churchName: row.church_name,
@@ -166,7 +137,19 @@ export async function fetchUserMemberships(userId: string): Promise<ChurchMember
     status: row.status as MemberStatus,
     joinedAt: row.joined_at,
     updatedAt: row.updated_at,
+    joinCode: undefined as string | undefined,
   }));
+
+  await Promise.all(
+    memberships
+      .filter(m => m.status === 'approved' && (m.role === 'OWNER' || m.role === 'ADMIN'))
+      .map(async (m) => {
+        const { data: code } = await supabase.rpc('get_church_join_code', { p_church_id: m.churchId });
+        if (code) m.joinCode = code;
+      })
+  );
+
+  return memberships;
 }
 
 export async function fetchChurchMembers(churchId: string): Promise<ChurchMember[]> {
@@ -202,11 +185,11 @@ export async function updateChurchMemberRole(
   _userId?: string,
   _churchName?: string
 ): Promise<void> {
-  const { error } = await supabase
-    .from('church_members')
-    .update({ role, updated_at: new Date().toISOString() })
-    .eq('id', membershipId);
-
+  const { error } = await supabase.rpc('update_church_member', {
+    p_membership_id: membershipId,
+    p_role: role,
+    p_status: null,
+  });
   if (error) throw error;
 }
 
@@ -217,69 +200,38 @@ export async function updateChurchMemberStatus(
   _userId?: string,
   _churchName?: string
 ): Promise<void> {
-  const { error } = await supabase
-    .from('church_members')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', membershipId);
-
+  const { error } = await supabase.rpc('update_church_member', {
+    p_membership_id: membershipId,
+    p_role: null,
+    p_status: status,
+  });
   if (error) throw error;
 }
 
 export async function requestToJoinChurch(
   churchId: string,
-  userOrId: string | { uid?: string; id?: string; displayName?: string; email?: string; photoUrl?: string },
-  churchNameOrDisplayName?: string,
-  displayNameOrEmail?: string,
-  email?: string,
-  photoUrl?: string
+  _userOrId: string | { uid?: string; id?: string; displayName?: string; email?: string; photoUrl?: string },
+  _churchNameOrDisplayName?: string,
+  _displayNameOrEmail?: string,
+  _email?: string,
+  _photoUrl?: string
 ): Promise<void> {
-  let userId = '';
-  let displayName = '';
-  let userEmail = '';
-  let photo = photoUrl;
-  let churchName = churchNameOrDisplayName || '';
-
-  if (typeof userOrId === 'object' && userOrId !== null) {
-    userId = userOrId.uid || userOrId.id || '';
-    displayName = userOrId.displayName || '';
-    userEmail = userOrId.email || '';
-    photo = userOrId.photoUrl;
-  } else {
-    userId = userOrId;
-    displayName = displayNameOrEmail || '';
-    userEmail = email || '';
-  }
-
-  const membershipId = `${churchId}_${userId}`;
-  const { error } = await supabase.from('church_members').upsert({
-    id: membershipId,
-    church_id: churchId,
-    user_id: userId,
-    church_name: churchName,
-    display_name: displayName || 'Membre ALLORA',
-    email: userEmail,
-    photo_url: photo,
-    role: 'MEMBER',
-    status: 'pending',
-    joined_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+  const { error } = await supabase.rpc('request_to_join_church', {
+    p_church_id: churchId,
   });
-
   if (error) throw error;
 }
 
 export const updateMemberStatus = updateChurchMemberStatus;
 export const updateMemberRole = updateChurchMemberRole;
 
-export async function leaveChurch(churchId: string, userId: string): Promise<{ success: boolean; message: string }> {
-  const membershipId = `${churchId}_${userId}`;
-  const { error } = await supabase
-    .from('church_members')
-    .update({ status: 'left', updated_at: new Date().toISOString() })
-    .or(`id.eq.${membershipId},and(church_id.eq.${churchId},user_id.eq.${userId})`);
-
+export async function leaveChurch(churchId: string, _userId?: string): Promise<{ success: boolean; message: string }> {
+  const { data, error } = await supabase.rpc('leave_church', { p_church_id: churchId });
   if (error) throw error;
-  return { success: true, message: 'Vous avez quitté l\'église avec succès.' };
+  return {
+    success: Boolean(data?.success),
+    message: data?.message || 'Vous avez quitté l’église avec succès.',
+  };
 }
 
 export function subscribeToUserMemberships(userId: string, callback: (memberships: ChurchMember[]) => void): () => void {
@@ -888,49 +840,17 @@ export async function deleteEvent(eventId: string, _userId?: string): Promise<vo
 
 export async function registerForEvent(
   eventId: string,
-  userIdOrParticipant?: string | Partial<EventParticipant>,
-  displayName?: string,
-  email?: string
+  _userIdOrParticipant?: string | Partial<EventParticipant>,
+  _displayName?: string,
+  _email?: string
 ): Promise<{ success: boolean; registeredCount?: number }> {
-  const { data: user } = await supabase.auth.getUser();
-  const uid = typeof userIdOrParticipant === 'string' ? userIdOrParticipant : (user.user?.id || '');
-  const name = displayName || (typeof userIdOrParticipant === 'object' ? userIdOrParticipant?.displayName : undefined) || user.user?.user_metadata?.display_name || user.user?.email?.split('@')[0] || 'Participant';
-  const mail = email || (typeof userIdOrParticipant === 'object' ? userIdOrParticipant?.email : undefined) || user.user?.email || '';
-
-  if (uid) {
-    const participantId = `${eventId}_${uid}`;
-    await supabase.from('event_participants').upsert({
-      id: participantId,
-      event_id: eventId,
-      user_id: uid,
-      display_name: name,
-      email: mail,
-      status: 'registered',
-      updated_at: new Date().toISOString(),
-    });
-  }
-
-  // Also call atomic stored procedure if available
-  try {
-    const { data } = await supabase.rpc('register_for_event', { p_event_id: eventId });
-    if (data) return data;
-  } catch (_e) {
-    // Stored procedure fallback
-  }
-
-  return { success: true };
+  const { data, error } = await supabase.rpc('register_for_event', { p_event_id: eventId });
+  if (error) throw error;
+  return data || { success: true };
 }
 
 export async function cancelEventRegistration(eventId: string, _userId?: string): Promise<void> {
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) throw new Error('Authentification requise');
-
-  const participantId = `${eventId}_${user.user.id}`;
-  const { error } = await supabase
-    .from('event_participants')
-    .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-    .eq('id', participantId);
-
+  const { error } = await supabase.rpc('cancel_event_registration', { p_event_id: eventId });
   if (error) throw error;
 }
 
@@ -1118,24 +1038,12 @@ export async function togglePostReaction(
   userIdOrReaction: string,
   reactionType?: string
 ): Promise<void> {
-  const { data: user } = await supabase.auth.getUser();
   const reaction = reactionType || userIdOrReaction;
-  const uid = reactionType ? userIdOrReaction : user.user?.id;
-  if (!uid) return;
-
-  const { data: post } = await supabase.from('posts').select('reactions').eq('id', postId).single();
-  if (!post) return;
-
-  const reactions = post.reactions || {};
-  const currentUsers: string[] = reactions[reaction] || [];
-
-  if (currentUsers.includes(uid)) {
-    reactions[reaction] = currentUsers.filter((id) => id !== uid);
-  } else {
-    reactions[reaction] = [...currentUsers, uid];
-  }
-
-  await supabase.from('posts').update({ reactions }).eq('id', postId);
+  const { error } = await supabase.rpc('toggle_post_reaction', {
+    p_post_id: postId,
+    p_reaction: reaction,
+  });
+  if (error) throw error;
 }
 
 export async function fetchComments(postId: string): Promise<Comment[]> {

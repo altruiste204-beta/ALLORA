@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useAuth } from '../../context/AuthContext';
-import { joinChurchWithCode, fetchChurches } from '../../supabase/services/dataService';
+import { joinChurchWithCode } from '../../supabase/services/dataService';
+import { supabase } from '../../supabase/client';
 import { getHumanErrorMessage } from '../../supabase/errors';
 import { Church } from '../../types';
 
@@ -45,15 +46,38 @@ export const JoinChurchModal: React.FC<JoinChurchModalProps> = ({
 
     try {
       const codeToFind = joinCode.trim().toUpperCase();
-      // To bypass creating complex multi-index, we can list churches and find, or just query.
-      // Since fetchChurches is fast and capped, we can search it.
-      const allChurches = await fetchChurches();
-      const match = allChurches.find(c => c.joinCode?.toUpperCase() === codeToFind);
+      const { data, error } = await supabase.rpc('find_church_by_join_code', {
+        p_join_code: codeToFind,
+      });
 
-      if (match) {
-        setMatchedChurch(match);
+      if (error) throw error;
+
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row) {
+        setMatchedChurch({
+          churchId: row.id,
+          name: row.name,
+          description: row.description,
+          logoUrl: row.logo_url,
+          coverImageUrl: row.cover_image_url,
+          address: row.address,
+          city: row.city,
+          country: row.country,
+          contactPhone: row.contact_phone,
+          contactEmail: row.contact_email,
+          website: row.website,
+          denomination: row.denomination,
+          foundedYear: row.founded_year,
+          leaderIds: row.leader_ids || [],
+          verificationStatus: row.verification_status || 'pending',
+          verified: row.verification_status === 'verified',
+          createdBy: row.created_by,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          joinCode: codeToFind,
+        });
       } else {
-        setErrorMsg('Aucune église ne correspond à ce code de rejoindre. Veuillez vérifier le code.');
+        setErrorMsg('Aucune église ne correspond à ce code. Veuillez vérifier le code.');
       }
     } catch (err) {
       console.error('Error verifying join code:', err);

@@ -135,7 +135,7 @@ function MainApp() {
       {/* Navigation (Mobile navBottom + Tablet/PC Responsive Hamburger Drawer) */}
       <Navigation
         activeTab={activeTab}
-        onTabChange={(tab) => {
+        onTabChange={(tab: ActiveTab) => {
           setActiveTab(tab);
           setIsNavMenuOpen(false);
           window.scrollTo({ top: 0, behavior: 'smooth' });

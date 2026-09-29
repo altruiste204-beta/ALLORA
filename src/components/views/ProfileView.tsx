@@ -47,7 +47,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [editSkills, setEditSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState('');
 
-  // Real Firestore data states
+  // Real Supabase data states
   const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
   const [userEvents, setUserEvents] = useState<CommunityEvent[]>([]);
   const [loading, setLoading] = useState(true);
