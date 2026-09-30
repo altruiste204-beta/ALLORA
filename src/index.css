@@ -170,6 +170,78 @@
   animation: allora-loading-spin-pulse 3s ease-in-out infinite;
 }
 
+/* ALLORA Tri-Color Animated Badge (Loading State) */
+@keyframes allora-badge-cycle {
+  /* State 1: Blanc sur fond noir (0% - 28%) */
+  0%, 28% {
+    background-color: #111315;
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+  /* State 2: Bleu ciel sur fond bleu sombre #19344A (34% - 62%) */
+  34%, 62% {
+    background-color: #19344A;
+    border-color: rgba(103, 183, 232, 0.5);
+    box-shadow: 0 14px 40px rgba(103, 183, 232, 0.35), 0 0 0 1px rgba(103, 183, 232, 0.2);
+  }
+  /* State 3: Noir sur fond blanc (68% - 94%) */
+  68%, 94% {
+    background-color: #FFFFFF;
+    border-color: rgba(17, 19, 21, 0.15);
+    box-shadow: 0 14px 36px rgba(255, 255, 255, 0.3), 0 0 0 1px rgba(17, 19, 21, 0.08);
+  }
+  /* Transition back to State 1 */
+  100% {
+    background-color: #111315;
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+}
+
+@keyframes allora-symbol-cycle {
+  /* State 1: Blanc */
+  0%, 28% {
+    fill: #FFFFFF;
+    stroke: #FFFFFF;
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.6));
+  }
+  /* State 2: Bleu ciel #67B7E8 */
+  34%, 62% {
+    fill: #67B7E8;
+    stroke: #67B7E8;
+    filter: drop-shadow(0 0 14px rgba(103, 183, 232, 0.7));
+  }
+  /* State 3: Noir #111315 */
+  68%, 94% {
+    fill: #111315;
+    stroke: #111315;
+    filter: drop-shadow(0 0 8px rgba(17, 19, 21, 0.3));
+  }
+  /* Loop */
+  100% {
+    fill: #FFFFFF;
+    stroke: #FFFFFF;
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.6));
+  }
+}
+
+@keyframes allora-badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.animate-allora-badge-cycle {
+  animation: allora-badge-cycle 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite, allora-badge-pulse 2.25s ease-in-out infinite;
+}
+
+.animate-allora-symbol-cycle {
+  animation: allora-symbol-cycle 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 .kaushan-script-regular {
   font-family: "Kaushan Script", cursive;
   font-weight: 400;

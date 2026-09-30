@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+import { AlloraAnimatedLogo } from './AlloraAnimatedLogo';
 
 interface AppLoadingScreenProps {
   isExiting?: boolean;
@@ -66,11 +67,14 @@ export const AppLoadingScreen: React.FC<AppLoadingScreenProps> = ({
       <div 
         className="absolute w-[450px] h-[450px] rounded-full pointer-events-none animate-allora-aura"
         style={{
-          background: 'radial-gradient(circle, rgba(103, 183, 232, 0.28) 0%, rgba(220, 239, 250, 0.12) 40%, rgba(25, 52, 74, 0) 70%)',
+          background: 'radial-gradient(circle, rgba(103, 183, 232, 0.32) 0%, rgba(220, 239, 250, 0.12) 45%, rgba(25, 52, 74, 0) 70%)',
         }}
       />
 
-      <div className="relative flex flex-col items-center justify-center max-w-sm w-full text-center space-y-7 z-10 animate-in fade-in zoom-in-95 duration-500">
+      <div className="relative flex flex-col items-center justify-center max-w-sm w-full text-center space-y-6 z-10 animate-in fade-in zoom-in-95 duration-500">
+        {/* Animated Tri-Color Logo Badge */}
+        <AlloraAnimatedLogo size="lg" showText={true} showTagline={true} />
+
         {/* Animated Progress Bar */}
         <div className="w-full max-w-xs space-y-3 pt-2">
           <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/10 backdrop-blur-sm">

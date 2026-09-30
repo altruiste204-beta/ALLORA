@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center cursor-pointer transition-transform hover:opacity-95 active:scale-98"
           title="ALLORA Accueil"
         >
-          <AlloraLogo size="md" showTagline={false} withContainer={false} />
+          <AlloraLogo size="md" showTagline={false} withContainer={true} />
         </div>
 
         {/* Right Actions: Notifications Bell, Profile Avatar, and Hamburger Menu Button (Tablet / PC) */}

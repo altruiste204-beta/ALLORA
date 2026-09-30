@@ -194,7 +194,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 }}
                 className="cursor-pointer"
               >
-                <AlloraLogo size="sm" showTagline={true} withContainer={false} />
+                <AlloraLogo size="sm" showTagline={true} withContainer={true} />
               </div>
               <button
                 onClick={onCloseMenu}

@@ -1,10 +1,12 @@
 import React from 'react';
+import { AlloraAnimatedLogo } from './AlloraAnimatedLogo';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   text?: string;
   variant?: 'dark' | 'light' | 'primary';
   className?: string;
+  useLogo?: boolean;
 }
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
@@ -12,7 +14,18 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   text,
   variant = 'primary',
   className = '',
+  useLogo = true,
 }) => {
+  // Use the official ALLORA Tri-Color Animated Badge for section & page loads
+  if (useLogo && (size === 'md' || size === 'lg' || size === 'xl')) {
+    const logoSize = size === 'xl' ? 'xl' : size === 'lg' ? 'lg' : 'md';
+    return (
+      <div className={`flex flex-col items-center justify-center p-6 ${className}`}>
+        <AlloraAnimatedLogo size={logoSize} text={text} showText={size === 'xl'} />
+      </div>
+    );
+  }
+
   const sizeMap = {
     sm: 'w-4 h-4 border-2',
     md: 'w-7 h-7 border-2',
